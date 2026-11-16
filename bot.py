@@ -69,7 +69,11 @@ def _build_bot():
                 menu_button=MenuButtonWebApp(text="Справочник",
                                              web_app=WebAppInfo(url=WEBAPP_URL))
             )
-        await dp.start_polling(bot)
+        # handle_signals=False обязателен: бот живёт в фоновом потоке, а
+        # обработчики сигналов ставятся только из главного. Иначе aiogram
+        # падает с «set_wakeup_fd only works in main thread».
+        # Выключением занимается server.main() в главном потоке.
+        await dp.start_polling(bot, handle_signals=False)
 
     return run
 
