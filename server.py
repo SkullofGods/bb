@@ -109,7 +109,9 @@ def start_bot_if_configured():
     def run():
         try:
             asyncio.run(bot_module.main())
-        except Exception as e:
+        except SystemExit as e:  # боту не хватило настроек — это не повод ронять сайт
+            print(f"Бот не запустился: {e}", flush=True)
+        except BaseException as e:
             print(f"Бот остановился: {e.__class__.__name__}: {e}", flush=True)
 
     threading.Thread(target=run, name="bot", daemon=True).start()
