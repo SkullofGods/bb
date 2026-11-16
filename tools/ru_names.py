@@ -230,6 +230,17 @@ HDR = {
  "Max Shield": "Максимум щита", "Shield Regeneration": "Восстановление щита",
  "Heal Range": "Радиус лечения", "Heal Speed": "Скорость лечения",
  "Patrol Radius": "Радиус патруля", "Number Built": "Построено",
+ "Mark Number": "Марка", "Mark": "Марка", "Damage Boost": "Прирост урона",
+ "Fuses": "Предохранители", "Gears": "Шестерни", "Rods": "Стержни",
+ "Capacitors": "Конденсаторы", "Build Time": "Время сборки",
+ "Critters per Salvo": "Криттеров за залп", "Total Attack Intervall": "Интервал атаки",
+ "Deployable Turret Hitpoints": "Прочность турели", "Deployable Turret DPS": "Урон турели/сек",
+ "Deployable Turret Damage per Shot": "Урон турели за выстрел",
+ "Protector Hitpoints": "Прочность защитника", "Crystal Shield Hitpoints": "Прочность щита",
+ "Bomb Damage": "Урон бомбы", "Beam Length": "Длина луча",
+ "Damage per Shot & Shrapnel Damage": "Урон снаряда и осколков",
+ "Heal per Hit": "Лечение за удар", "HQ Required": "Нужен штаб",
+ "Displayed HP Healed per Attack ¹": "Лечение за удар",
 }
 
 # Названия операций: перевод и как их зовут в нашем чате

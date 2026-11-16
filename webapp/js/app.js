@@ -54,15 +54,16 @@
     if (!p.length || p[0] === 'home') return { tab: 'home', run: VIEWS.home };
     switch (p[0]) {
       case 'ops': return { tab: 'ops', run: function () { return VIEWS.ops(q); } };
+      case 'op': return { tab: 'ops', run: function () { return VIEWS.operation(p[1]); } };
+      case 'bases': return { tab: 'ops', run: VIEWS.bases };
+      case 'base': return { tab: 'ops', run: function () { return VIEWS.base(p[1]); } };
       case 'cat': return { tab: 'cat', run: function () { return VIEWS.catalog(p[1] || 'troops'); } };
       case 'p': return { tab: null, run: function () { return VIEWS.detail(p[1], p[2]); } };
       case 'gb': return { tab: 'gb', run: VIEWS.gunboat };
       case 'calc': return { tab: 'gb', run: function () { return VIEWS.calcView(q); } };
       case 'statues': return { tab: 'more', run: VIEWS.statues };
       case 'guide': return { tab: 'more', run: function () { return VIEWS.guideArticle(p[1]); } };
-      case 'slang': return { tab: 'more', run: VIEWS.slangView };
       case 'faq': return { tab: 'more', run: VIEWS.faqView };
-      case 'gallery': return { tab: 'more', run: VIEWS.gallery };
       case 'more': return { tab: 'more', run: VIEWS.more };
       case 'search': return { tab: null, run: function () { return VIEWS.searchView(q); } };
       default: return { tab: 'home', run: VIEWS.home };
@@ -137,6 +138,10 @@
   });
 
   backBtn.onclick = back;
+  document.getElementById('btn-search').onclick = function () {
+    UI.haptic('light');
+    go('#/search');
+  };
 
   document.addEventListener('keydown', function (ev) {
     if (ev.key === 'Escape') { UI.closeSheet(); UI.closeLightbox(); }

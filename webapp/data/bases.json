@@ -1,0 +1,267 @@
+[
+ {
+  "id": "dezhavyu",
+  "name": "Дежавю",
+  "ops": [
+   24
+  ],
+  "note": "",
+  "shots": [
+   {
+    "img": "img/bases/dezhavyu-1.webp",
+    "thumb": "img/bases/t/dezhavyu-1.webp",
+    "lvl": 177,
+    "fp": 330,
+    "date": "10.11.2024"
+   },
+   {
+    "img": "img/bases/dezhavyu-2.webp",
+    "thumb": "img/bases/t/dezhavyu-2.webp",
+    "lvl": 183,
+    "fp": 350,
+    "date": "13.12.2024"
+   }
+  ]
+ },
+ {
+  "id": "garmoniya",
+  "name": "Гармония",
+  "ops": [
+   24
+  ],
+  "note": "",
+  "shots": [
+   {
+    "img": "img/bases/garmoniya-1.webp",
+    "thumb": "img/bases/t/garmoniya-1.webp",
+    "lvl": 183,
+    "fp": 350,
+    "date": "10.11.2024"
+   },
+   {
+    "img": "img/bases/garmoniya-2.webp",
+    "thumb": "img/bases/t/garmoniya-2.webp",
+    "lvl": 170,
+    "fp": 320,
+    "date": "13.12.2024"
+   }
+  ]
+ },
+ {
+  "id": "vpp",
+  "name": "ВПП",
+  "ops": [
+   24
+  ],
+  "note": "",
+  "shots": [
+   {
+    "img": "img/bases/vpp-1.webp",
+    "thumb": "img/bases/t/vpp-1.webp",
+    "lvl": 183,
+    "fp": 350,
+    "date": "13.12.2024"
+   }
+  ]
+ },
+ {
+  "id": "podborodok",
+  "name": "Подбородок",
+  "ops": [
+   24
+  ],
+  "note": "",
+  "shots": [
+   {
+    "img": "img/bases/podborodok-1.webp",
+    "thumb": "img/bases/t/podborodok-1.webp",
+    "lvl": 177,
+    "fp": 330,
+    "date": "13.12.2024"
+   }
+  ]
+ },
+ {
+  "id": "troica",
+  "name": "Троица",
+  "ops": [],
+  "note": "",
+  "shots": [
+   {
+    "img": "img/bases/troica-1.webp",
+    "thumb": "img/bases/t/troica-1.webp",
+    "lvl": 170,
+    "fp": 320,
+    "date": "10.11.2024"
+   }
+  ]
+ },
+ {
+  "id": "pozvonochnik",
+  "name": "Позвоночник",
+  "ops": [
+   24
+  ],
+  "note": "",
+  "shots": [
+   {
+    "img": "img/bases/pozvonochnik-1.webp",
+    "thumb": "img/bases/t/pozvonochnik-1.webp",
+    "lvl": 170,
+    "fp": 320,
+    "date": "13.12.2024"
+   }
+  ]
+ },
+ {
+  "id": "mantikora",
+  "name": "Мантикора",
+  "ops": [],
+  "note": "",
+  "shots": [
+   {
+    "img": "img/bases/mantikora-1.webp",
+    "thumb": "img/bases/t/mantikora-1.webp",
+    "lvl": 161,
+    "fp": 300,
+    "date": "17.10.2024"
+   }
+  ]
+ },
+ {
+  "id": "labirint",
+  "name": "Лабиринт",
+  "ops": [],
+  "note": "",
+  "shots": [
+   {
+    "img": "img/bases/labirint-1.webp",
+    "thumb": "img/bases/t/labirint-1.webp",
+    "lvl": 161,
+    "fp": 300,
+    "date": "18.10.2024"
+   },
+   {
+    "img": "img/bases/labirint-2.webp",
+    "thumb": "img/bases/t/labirint-2.webp",
+    "lvl": 153,
+    "fp": 251,
+    "date": "22.10.2024"
+   }
+  ]
+ },
+ {
+  "id": "materinskaya-plata",
+  "name": "Материнская плата",
+  "ops": [
+   24
+  ],
+  "note": "",
+  "shots": [
+   {
+    "img": "img/bases/materinskaya-plata-1.webp",
+    "thumb": "img/bases/t/materinskaya-plata-1.webp",
+    "lvl": 158,
+    "fp": 300,
+    "date": "13.12.2024"
+   }
+  ]
+ },
+ {
+  "id": "hardkor",
+  "name": "Хардкор",
+  "ops": [],
+  "note": "",
+  "shots": [
+   {
+    "img": "img/bases/hardkor-1.webp",
+    "thumb": "img/bases/t/hardkor-1.webp",
+    "lvl": 164,
+    "fp": 292,
+    "date": "30.10.2025"
+   }
+  ]
+ },
+ {
+  "id": "dolgopyat",
+  "name": "Долгопят",
+  "ops": [],
+  "note": "",
+  "shots": [
+   {
+    "img": "img/bases/dolgopyat-1.webp",
+    "thumb": "img/bases/t/dolgopyat-1.webp",
+    "lvl": 125,
+    "fp": 190,
+    "date": "13.10.2024"
+   }
+  ]
+ },
+ {
+  "id": "mehanicheskiy-hrust",
+  "name": "Механический хруст",
+  "ops": [],
+  "note": "",
+  "shots": [
+   {
+    "img": "img/bases/mehanicheskiy-hrust-1.webp",
+    "thumb": "img/bases/t/mehanicheskiy-hrust-1.webp",
+    "lvl": 125,
+    "fp": 190,
+    "date": "13.10.2024"
+   }
+  ]
+ },
+ {
+  "id": "orbifold",
+  "name": "Орбифольд",
+  "ops": [],
+  "note": "",
+  "shots": [
+   {
+    "img": "img/bases/orbifold-1.webp",
+    "thumb": "img/bases/t/orbifold-1.webp",
+    "lvl": 125,
+    "fp": 190,
+    "date": "17.12.2024"
+   }
+  ]
+ },
+ {
+  "id": "bronenosec",
+  "name": "Броненосец",
+  "ops": [],
+  "note": "",
+  "shots": [
+   {
+    "img": "img/bases/bronenosec-1.webp",
+    "thumb": "img/bases/t/bronenosec-1.webp",
+    "lvl": 109,
+    "fp": 185,
+    "date": "29.10.2024"
+   }
+  ]
+ },
+ {
+  "id": "kvota",
+  "name": "Квота",
+  "ops": [],
+  "note": "",
+  "shots": [
+   {
+    "img": "img/bases/kvota-1.webp",
+    "thumb": "img/bases/t/kvota-1.webp",
+    "lvl": 96,
+    "fp": 94,
+    "date": "26.10.2024"
+   },
+   {
+    "img": "img/bases/kvota-2.webp",
+    "thumb": "img/bases/t/kvota-2.webp",
+    "lvl": 79,
+    "fp": 118,
+    "date": "13.11.2024"
+   }
+  ]
+ }
+]

@@ -1,13 +1,14 @@
 # -*- coding: utf-8 -*-
-"""Сборка данных мини-приложения.
+"""Сборка справочника мини-приложения с вики Boom Beach.
 
-    py -3 tools/build.py            # всё: вики -> webapp/data + webapp/img
-    py -3 tools/build.py wiki       # только справочник с вики
-    py -3 tools/build.py gallery    # только галерея из выгрузки чата
-    py -3 tools/build.py gallery "D:/путь/к/ChatExport_2026-11-16"
+    py -3 tools/build.py
 
+Кладёт данные в webapp/data и иконки в webapp/img.
 Страницы вики кешируются в tools/cache — повторный запуск быстрый.
 Чтобы перекачать вики заново, удали папку tools/cache.
+
+Каталог силовых баз операций собирается отдельным скриптом:
+    py -3 tools/build_bases.py
 """
 import glob
 import html
@@ -234,6 +235,11 @@ def norm_table(rows):
     rows = [r for r in rows if any(c.strip() for c in r)]
     if len(rows) < 2:
         return None
+    # строка-подпись на всю ширину (все ячейки одинаковые) — это заголовок таблицы
+    caption = ""
+    while len(rows) > 2 and len(set(c.strip() for c in rows[0])) == 1 and rows[0][0].strip():
+        caption = tr(rows[0][0].strip())
+        rows = rows[1:]
     head, start = rows[0], 1
     if len(rows) > 2 and rows[1][0].strip() == head[0].strip() and head[0].strip():
         merged = []
@@ -249,7 +255,70 @@ def norm_table(rows):
     head = [head[i] for i in keep]
     body = [[tr_val(r[i] if i < len(r) else "") for i in keep] for r in body]
     body = [r for r in body if any(c.strip() and c != "—" for c in r)]
-    return {"headers": head, "rows": body} if body else None
+    if not body:
+        return None
+    return {"title": caption, "headers": head, "rows": body}
+
+
+SKIP_TABLE = re.compile(r"звук|sound|^deploy$|appearance|^level 1$", re.I)
+
+
+def is_level_head(h):
+    return h.strip().lower() in ("level", "mark number", "mark", "ур.", "марка")
+
+
+def keep_extra(t):
+    """Отсеивает таблицы-картинки и прочий мусор вики."""
+    h = t["headers"]
+    if len(h) < 2:
+        return False
+    flat = " ".join(h).lower()
+    if "view full size" in flat or "full size image" in flat:
+        return False
+    if all(re.match(r"^level\s*\d", x.strip(), re.I) for x in h):
+        return False
+    if max(len(c) for r in t["rows"] for c in r) > 400:
+        return False
+    return True
+
+
+def merge_early_access(levels, extras):
+    """Приклеивает строки «раннего доступа» (минусовые уровни) к основной таблице."""
+    if not levels:
+        return levels, extras
+    rest, early = [], None
+    for t in extras:
+        cap = (t.get("title") or "")
+        if early is None and ("Ранний доступ" in cap or "Early Access" in cap) \
+                and t["headers"] and is_level_head(t["headers"][0]):
+            early = t
+        else:
+            rest.append(t)
+    if not early:
+        return levels, extras
+    idx = {}
+    for i, h in enumerate(early["headers"]):
+        idx[tr(h)] = i
+    added = []
+    for r in early["rows"]:
+        try:
+            lvl = float(r[0].replace(" ", ""))
+        except ValueError:
+            continue
+        if lvl >= 1:
+            continue                      # дубли обычных уровней не нужны
+        row = []
+        for h in levels["headers"]:
+            j = idx.get(h, -1)
+            row.append(r[j] if 0 <= j < len(r) else "—")
+        row[0] = r[0]
+        added.append((lvl, row))
+    if not added:
+        return levels, rest
+    added.sort(key=lambda x: x[0])
+    levels = {"title": levels.get("title", ""), "headers": levels["headers"],
+              "rows": [r for _, r in added] + levels["rows"]}
+    return levels, rest
 
 
 def pick_tables(tables):
@@ -262,13 +331,15 @@ def pick_tables(tables):
         if "•" in flat or "Wiki Navigation" in flat or len(flat) > 12000:
             continue
         head0 = " ".join(rows[0]).lower()
-        if len(rows) == 2 and len(rows[0]) <= 8 and "level" not in rows[0][0].lower():
+        if SKIP_TABLE.search(rows[0][0].strip()) or SKIP_TABLE.search(head0[:40]):
+            continue
+        if len(rows) == 2 and len(rows[0]) <= 12 and not is_level_head(rows[0][0]):
             for k, v in zip(rows[0], rows[1]):
                 k, v = k.strip(), v.strip()
                 if k and v and "+%" not in k and "Apply" not in k and "ApplyReset" not in v:
                     info[tr(k)] = tr_val(v)
             continue
-        if rows[0][0].strip().lower() == "level" and levels is None:
+        if is_level_head(rows[0][0]) and levels is None:
             nt = norm_table(rows)
             if nt:
                 levels = nt
@@ -282,8 +353,9 @@ def pick_tables(tables):
         if "appearance" in head0 or "skin" in head0:
             continue
         nt = norm_table(rows)
-        if nt and len(nt["rows"]) <= 40:
+        if nt and len(nt["rows"]) <= 40 and keep_extra(nt):
             extras.append(nt)
+    levels, extras = merge_early_access(levels, extras)
     return info, levels, extras
 
 
@@ -356,9 +428,9 @@ def build_wiki():
                          "lines": [l for l in s["lines"] if len(l) > 15][:14]}
                         for s in page_sections(h) if s["title"] in SECTION_RU]
             sections = [s for s in sections if s["lines"]]
-            ru, slang = RU.get(title, (title, ""))
+            ru = RU.get(title, (title, ""))[0]
             arr.append({
-                "id": slug(title), "en": title, "ru": ru, "slang": slang,
+                "id": slug(title), "en": title, "ru": ru,
                 "group": group, "groupRu": GROUP_RU.get(group, group),
                 "img": dl_image(main_image(h), slug(title)),
                 "info": info, "levels": levels, "extras": extras, "text": sections,
@@ -382,10 +454,10 @@ def build_ops(tables):
         if "Operation Name" in head:
             for r in rows[2:]:
                 en = r[1].strip()
-                ru, slang, note = OPS.get(en, (en, "", ""))
+                ru, _, note = OPS.get(en, (en, "", ""))
                 ops.append({
                     "n": int(re.sub(r"\D", "", r[0]) or 0), "en": en, "ru": ru,
-                    "slang": slang, "note": note,
+                    "note": note,
                     "intel": {"5": r[2], "10": r[3], "25": r[4], "50": r[5]},
                     "fp": r[6].replace(",", "\u2009"), "bases": r[7],
                 })
@@ -397,125 +469,6 @@ def build_ops(tables):
     print(f"операции: {len(ops)} -> ops.json")
 
 
-# ------------------------------------------------------------------ галерея
-
-TOPICS = [
-    ("Операции", r"опер|бастион|фокстрот|бочк|ножовк|тупик|порез|надежд|дуплекс|дупло|масс[ае]|силов|интел|саботаж|очки силы"),
-    ("Базы и схемы", r"баз[аыуе]|схем|застро|расстанов|планировк|оборон|защит"),
-    ("Войска", r"тяж|зук|гор[аы]|воин|танк|медик|гренад|огневик|лазер|крио|бомбард|механ|вертол|стрелк"),
-    ("Прототипы", r"прототип|прото|арбуз|витамин|разрядчиц|клон|искател|станнер|вампир"),
-    ("Канонерка", r"канонерк|арт[аы]|барраж|обстрел|шок|дым|флар|сигнальн|аптечк|энерг"),
-    ("События", r"блиц|краб|мегакраб|корабл|варшип|фабрик|хаммерман|доктор ти|имитац|сонар|турнир"),
-    ("Статуи и камни", r"статуи|статуй|скульпт|камн[иея]|пыльц|осколк|шедевр|страж|идол"),
-    ("Награды", r"награ|сундук|приз|выпал|элитк|крутк|пасс|магазин|акци"),
-]
-
-MSG_RE = re.compile(
-    r'<div class="message (default|service)[^"]*" id="message(-?\d+)">(.*?)'
-    r'(?=<div class="message (?:default|service)|</div>\s*</div>\s*</body>)', re.S)
-
-
-def parse_export(export_dir):
-    files = sorted(glob.glob(os.path.join(export_dir, "messages*.html")),
-                   key=lambda p: int(re.search(r"messages(\d*)\.html", p).group(1) or 1))
-    msgs, last = [], ""
-    for fp in files:
-        raw = open(fp, encoding="utf-8").read()
-        for m in MSG_RE.finditer(raw):
-            body = m.group(3)
-            dm = re.search(r'class="pull_right date details" title="([^"]+)"', body)
-            fm = re.search(r'<div class="from_name">(.*?)</div>', body, re.S)
-            tm = re.search(r'<div class="text">(.*?)</div>', body, re.S)
-            photos = [p for p in re.findall(r'href="(photos/[^"]+?)"', body) if "_thumb" not in p]
-            frm = re.sub(r"\s+", " ", strip_html(fm.group(1))).strip() if fm else ""
-            if frm:
-                last = frm
-            msgs.append({
-                "date": dm.group(1) if dm else "",
-                "frm": frm or last,
-                "text": strip_html(tm.group(1)).strip() if tm else "",
-                "photos": photos,
-            })
-    return msgs
-
-
-def topic_of(text):
-    t = text.lower()
-    for name, pat in TOPICS:
-        if re.search(pat, t):
-            return name
-    return "Разное"
-
-
-def build_gallery(export_dir):
-    try:
-        from PIL import Image
-    except ImportError:
-        print("Для галереи нужен Pillow:  py -3 -m pip install pillow")
-        return
-    if not os.path.isdir(export_dir):
-        print("Нет папки выгрузки:", export_dir)
-        return
-    os.makedirs(os.path.join(GAL, "t"), exist_ok=True)
-    chat = parse_export(export_dir)
-    print(f"сообщений в выгрузке: {len(chat)}")
-    items, seen = [], set()
-    for i, m in enumerate(chat):
-        for p in m["photos"]:
-            if p in seen:
-                continue
-            seen.add(p)
-            fp = os.path.join(export_dir, p.replace("/", os.sep))
-            if not os.path.exists(fp):
-                continue
-            try:
-                im = Image.open(fp)
-            except Exception:
-                continue
-            w, h = im.size
-            if w / h < 1.7:          # вертикальные фото и мемы — не игровые скрины
-                continue
-            cap = m["text"].strip()
-            if not cap:
-                near = list(range(i + 1, min(len(chat), i + 4))) + \
-                       list(range(i - 1, max(-1, i - 5), -1))
-                for j in near:
-                    c = chat[j]
-                    if c["text"].strip() and not c["photos"] and len(c["text"]) > 3:
-                        cap = c["text"].strip()
-                        break
-            cap = re.sub(r"\s+", " ", cap)[:220]
-            name = re.sub(r"[^A-Za-z0-9_]", "", os.path.splitext(os.path.basename(p))[0])
-            im = im.convert("RGB")
-            big = im.copy()
-            big.thumbnail((900, 900), Image.LANCZOS)
-            big.save(os.path.join(GAL, name + ".webp"), "WEBP", quality=68, method=4)
-            sm = im.copy()
-            sm.thumbnail((260, 260), Image.LANCZOS)
-            sm.save(os.path.join(GAL, "t", name + ".webp"), "WEBP", quality=62, method=4)
-            items.append({"f": name, "d": m["date"][:10], "a": m["frm"],
-                          "c": cap, "t": topic_of(cap)})
-    items.sort(key=lambda x: x["d"].split(".")[::-1])
-    json.dump(items, open(os.path.join(DATA, "gallery.json"), "w", encoding="utf-8"),
-              ensure_ascii=False, separators=(",", ":"))
-    print(f"галерея: {len(items)} скринов -> gallery.json")
-
-
-def find_export():
-    for p in sorted(glob.glob(os.path.join(ROOT, "ChatExport_*")), reverse=True):
-        if os.path.isdir(p):
-            return p
-    return ""
-
-
 if __name__ == "__main__":
-    what = sys.argv[1] if len(sys.argv) > 1 else "all"
-    if what in ("all", "wiki"):
-        build_wiki()
-    if what in ("all", "gallery"):
-        d = sys.argv[2] if len(sys.argv) > 2 else find_export()
-        if d:
-            build_gallery(d)
-        else:
-            print("Выгрузка чата не найдена — галерею пропускаю.")
-    print("Готово.")
+    build_wiki()
+    print("Готово. Каталог баз операций собирается отдельно: py -3 tools/build_bases.py")

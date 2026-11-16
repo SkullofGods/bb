@@ -50,13 +50,13 @@
 
   function buildIndex() {
     if (index) return Promise.resolve(index);
-    return loadAll(ALL_KEYS.concat(['ops', 'guide'])).then(function () {
+    return loadAll(ALL_KEYS.concat(['ops', 'guide', 'bases'])).then(function () {
       index = [];
       ALL_KEYS.forEach(function (k) {
         (cache[k] || []).forEach(function (e) {
           index.push({
             kind: 'entry', group: k, id: e.id,
-            title: e.ru, sub: e.en, extra: (e.slang || '') + ' ' + (e.groupRu || ''),
+            title: e.ru, sub: e.en, extra: e.groupRu || '',
             img: e.img, href: '#/p/' + k + '/' + e.id
           });
         });
@@ -64,7 +64,13 @@
       (cache.ops ? cache.ops.ops : []).forEach(function (o) {
         index.push({
           kind: 'op', title: o.ru, sub: 'Операция ' + o.n + ' · ' + o.en,
-          extra: o.slang + ' ' + o.note, href: '#/ops?n=' + o.n
+          extra: o.note || '', href: '#/op/' + o.n
+        });
+      });
+      (cache.bases || []).forEach(function (b) {
+        index.push({
+          kind: 'base', title: b.name, sub: 'Силовая база операций',
+          extra: 'база схема', href: '#/base/' + b.id
         });
       });
       (cache.guide ? cache.guide.articles : []).forEach(function (a) {
@@ -72,9 +78,6 @@
           kind: 'article', title: a.title, sub: a.sub,
           extra: (a.tags || []).join(' '), href: '#/guide/' + a.id
         });
-      });
-      (cache.guide ? cache.guide.slang : []).forEach(function (s) {
-        index.push({ kind: 'slang', title: s.w, sub: s.m, extra: 'сленг словарь', href: '#/slang' });
       });
       return index;
     });

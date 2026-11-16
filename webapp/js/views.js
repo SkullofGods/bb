@@ -9,7 +9,7 @@
   function home() {
     return DB.loadAll(['ops', 'guide']).then(function (res) {
       var ops = res[0].ops, guide = res[1];
-      var hard = ops.filter(function (o) { return o.slang; }).slice(-5).reverse();
+      var hard = ops.slice(-5).reverse();
 
       var html =
         '<div class="hero">' +
@@ -33,12 +33,12 @@
           { icon: '🗿', title: 'Статуи', sub: 'Бонусы идолов и шедевров', href: '#/statues', accent: 'gold' }
         ]) +
 
-        UI.secTitle('Наши операции', { href: '#/ops', title: 'все' }) +
+        UI.secTitle('Тяжёлые операции', { href: '#/ops', title: 'все' }) +
         hard.map(function (o) {
           return UI.rowItem({
-            title: o.ru + (o.slang ? ' · ' + o.slang.split(',')[0] : ''),
+            title: o.ru,
             sub: '№' + o.n + ' · ' + o.bases + ' баз · ' + o.fp + ' очков силы',
-            href: '#/ops?n=' + o.n
+            href: '#/op/' + o.n
           });
         }).join('') +
 
@@ -66,7 +66,7 @@
         { v: 'list', t: 'Операции' },
         { v: 'rules', t: 'Как играть' },
         { v: 'order', t: 'Порядок атак' },
-        { v: 'bases', t: 'Базы' },
+        { v: 'bases', t: 'Про базы' },
         { v: 'sab', t: 'Саботаж' }
       ], tab, 'data-optab');
 
@@ -92,7 +92,7 @@
         var art = res[1].articles.filter(function (a) { return a.id === wantId; })[0];
         body = '<div class="article" style="margin-top:12px">' + renderBlocks(art.blocks) + '</div>' +
           (tab === 'bases'
-            ? UI.rowItem({ title: '🖼️ Схемы и скрины баз', sub: 'Архив из чата опергруппы', href: '#/gallery' })
+            ? UI.rowItem({ title: '🏭 Каталог баз', sub: 'Схемы разведки из чата', href: '#/bases' })
             : '') +
           UI.rowItem({ title: '📋 Все гайды', sub: 'Связки войск, энергия, ошибки', href: '#/more' });
       }
@@ -114,10 +114,6 @@
               UI.haptic('sel');
             };
           });
-          if (params && params.n) {
-            var o = data.ops.filter(function (x) { return String(x.n) === String(params.n); })[0];
-            if (o) opSheet(o);
-          }
         }
       };
     });
@@ -132,36 +128,170 @@
       list.map(function (o) {
         return '<tr data-op="' + o.n + '">' +
           '<td class="opname"><b>' + o.n + '. ' + esc(o.ru) + '</b>' +
-          '<span class="en">' + esc(o.en) +
-          (o.slang ? ' · <span class="sl">' + esc(o.slang) + '</span>' : '') + '</span></td>' +
+          '<span class="en">' + esc(o.en) + '</span></td>' +
           '<td class="num">' + esc(o.intel[opTfSize]) + '</td>' +
           '<td class="num">' + esc(o.fp) + '</td>' +
           '<td class="num">' + esc(o.bases) + '</td></tr>';
       }).join('') + '</tbody></table></div>';
     box.innerHTML = html;
     box.querySelectorAll('[data-op]').forEach(function (tr) {
-      tr.onclick = function () {
-        var o = list.filter(function (x) { return String(x.n) === tr.dataset.op; })[0];
-        if (o) { UI.haptic('light'); opSheet(o); }
+      tr.onclick = function () { App.go('#/op/' + tr.dataset.op); };
+    });
+  }
+
+  /* --- страница одной операции --- */
+
+  function operation(n) {
+    return DB.loadAll(['ops', 'bases']).then(function (res) {
+      var o = res[0].ops.filter(function (x) { return String(x.n) === String(n); })[0];
+      if (!o) return { title: 'Операция', html: '<div class="empty"><i>🤷</i>Такой операции нет</div>' };
+      var bases = res[1].filter(function (b) { return (b.ops || []).indexOf(o.n) >= 0; });
+
+      var html =
+        '<div class="hero" style="background:linear-gradient(135deg,var(--gold-soft),transparent)">' +
+          '<span class="hero-badge">Операция №' + o.n + '</span>' +
+          '<h1>' + esc(o.ru) + '</h1>' +
+          '<p>' + esc(o.en) + (o.note ? ' · ' + esc(o.note) : '') + '</p>' +
+        '</div>' +
+
+        '<div class="statgrid">' +
+          stat('Силовых баз', o.bases) +
+          stat('Очки силы', o.fp) +
+        '</div>' +
+
+        UI.secTitle('Цена интела') +
+        UI.table(['ОПГ 5', 'ОПГ 10', 'ОПГ 25', 'ОПГ 50'],
+          [[o.intel['5'], o.intel['10'], o.intel['25'], o.intel['50']]]) +
+
+        UI.secTitle('Базы этой операции');
+
+      if (bases.length) {
+        html += basesGrid(bases) +
+          '<div class="tiny" style="margin:9px 2px">Отмечено баз: ' + bases.length + ' из ' + o.bases +
+          '. Остальные добавляются по мере того, как они попадаются.</div>';
+      } else {
+        html += '<div class="card"><p style="margin:0 0 10px;font-size:13.5px;color:var(--muted);line-height:1.5">' +
+          'Для этой операции базы ещё не отмечены. Набор баз генерируется заново при каждом запуске, ' +
+          'поэтому список собирается по скриншотам разведки.</p>' +
+          '<div class="tiny">Как добавить: скрин разведки базы → <code>webapp/img/bases/</code>, ' +
+          'строка в <code>webapp/data/bases.json</code> с номером операции ' + o.n + '.</div></div>' +
+          UI.rowItem({ title: '🏭 Все известные базы', sub: 'Каталог со схемами', href: '#/bases' });
+      }
+
+      html += UI.secTitle('Пригодится') +
+        UI.rowItem({ title: '🎯 Порядок атак на базе', sub: 'Что сносить первым и чем', href: '#/ops?tab=order' }) +
+        UI.rowItem({ title: '🏭 Про силовые базы', sub: 'Почему они каждый раз разные', href: '#/ops?tab=bases' }) +
+        '<div class="tiny" style="margin-top:14px">Операция длится 23 ч 55 мин. У каждого игрока одна атака. ' +
+        'Урон по базам сохраняется между атаками.</div>';
+
+      return { title: o.ru, html: html };
+    });
+  }
+
+  /* --- каталог баз --- */
+
+  function basesGrid(list) {
+    return '<div class="base-grid">' + list.map(function (b) {
+      var s = b.shots[0] || {};
+      return '<button class="base-card" data-href="#/base/' + esc(b.id) + '">' +
+        (s.thumb ? '<img loading="lazy" src="' + esc(s.thumb) + '" alt="">' : '') +
+        '<span class="bc-t"><b>' + esc(b.name) + '</b>' +
+        '<span>' + (s.fp ? s.fp + ' ОС · ур. ' + s.lvl : '') +
+        (b.shots.length > 1 ? ' · ' + b.shots.length + ' варианта' : '') + '</span></span>' +
+        '</button>';
+    }).join('') + '</div>';
+  }
+
+  function bases() {
+    return DB.loadAll(['bases', 'ops']).then(function (res) {
+      var list = res[0], ops = res[1].ops;
+      var html =
+        '<div class="hero" style="background:linear-gradient(135deg,var(--red-soft),transparent)">' +
+          '<span class="hero-badge">схемы</span><h1>Силовые базы</h1>' +
+          '<p>' + list.length + ' баз со скриншотами разведки. Нажми на базу, чтобы посмотреть схему целиком.</p>' +
+        '</div>' +
+        '<div class="searchbar" style="margin-bottom:10px">' +
+          '<svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>' +
+          '<input id="b-q" placeholder="Название базы">' +
+        '</div>' +
+        '<div id="b-grid"></div>';
+      return {
+        title: 'Базы', html: html,
+        after: function (root) {
+          var inp = root.querySelector('#b-q');
+          function draw() {
+            var q = inp.value.trim().toLowerCase();
+            var f = list.filter(function (b) { return !q || b.name.toLowerCase().indexOf(q) >= 0; });
+            root.querySelector('#b-grid').innerHTML = f.length
+              ? basesGrid(f)
+              : '<div class="empty"><i>🔍</i>Ничего не нашлось</div>';
+          }
+          inp.oninput = draw;
+          draw();
+        }
       };
     });
   }
 
-  function opSheet(o) {
-    UI.sheet(
-      '<h2 style="margin:4px 0 2px;font-size:20px;font-weight:900">' + esc(o.ru) + '</h2>' +
-      '<div class="tiny" style="margin-bottom:10px">Операция №' + o.n + ' · ' + esc(o.en) +
-      (o.slang ? ' · в чате: <span style="color:var(--gold)">' + esc(o.slang) + '</span>' : '') + '</div>' +
-      (o.note ? '<p style="color:var(--muted);font-size:13.5px;margin:0 0 12px;line-height:1.5">' + esc(o.note) + '</p>' : '') +
-      '<div class="statgrid">' +
-        stat('Силовых баз', o.bases) +
-        stat('Очки силы', o.fp) +
-      '</div>' +
-      '<div class="sec-title">Цена интела</div>' +
-      UI.table(['ОПГ 5', 'ОПГ 10', 'ОПГ 25', 'ОПГ 50'],
-        [[o.intel['5'], o.intel['10'], o.intel['25'], o.intel['50']]]) +
-      '<div class="tiny" style="margin-top:12px">Операция длится 23 ч 55 мин. У каждого игрока одна атака. Урон по базам сохраняется между атаками.</div>'
-    );
+  function base(id) {
+    return DB.loadAll(['bases', 'ops']).then(function (res) {
+      var b = res[0].filter(function (x) { return x.id === id; })[0];
+      if (!b) return { title: 'База', html: '<div class="empty"><i>🤷</i>Такой базы нет</div>' };
+      var ops = res[1].ops;
+      var onOps = (b.ops || []).map(function (n) {
+        var o = ops.filter(function (x) { return x.n === n; })[0];
+        return o ? { n: n, ru: o.ru } : null;
+      }).filter(Boolean);
+
+      var maxFp = Math.max.apply(null, b.shots.map(function (s) { return s.fp || 0; }));
+      var lvls = b.shots.map(function (s) { return s.lvl; }).filter(Boolean);
+
+      var html =
+        '<div class="hero" style="background:linear-gradient(135deg,var(--red-soft),transparent)">' +
+          '<span class="hero-badge">силовая база</span><h1>' + esc(b.name) + '</h1>' +
+          '<p>Схема разведки из чата опергруппы' + (b.note ? ' · ' + esc(b.note) : '') + '</p>' +
+        '</div>' +
+
+        '<div class="statgrid">' +
+          stat('Очки силы', maxFp || '—') +
+          stat('Уровень базы', lvls.length ? (Math.min.apply(null, lvls) === Math.max.apply(null, lvls)
+            ? lvls[0] : Math.min.apply(null, lvls) + '–' + Math.max.apply(null, lvls)) : '—') +
+        '</div>' +
+
+        UI.secTitle('Схема' + (b.shots.length > 1 ? 'ы (' + b.shots.length + ')' : '')) +
+        b.shots.map(function (s, i) {
+          return '<div class="base-shot" data-shot="' + i + '">' +
+            '<img loading="lazy" src="' + esc(s.img) + '" alt="">' +
+            '<div class="bs-meta">ур. ' + s.lvl + ' · ' + s.fp + ' очков силы · ' + esc(s.date) +
+            ' <span class="bs-hint">нажми, чтобы открыть</span></div></div>';
+        }).join('') +
+
+        UI.secTitle('Встречается на операциях');
+
+      if (onOps.length) {
+        html += onOps.map(function (o) {
+          return UI.rowItem({ title: '№' + o.n + ' · ' + o.ru, sub: 'Открыть операцию', href: '#/op/' + o.n });
+        }).join('');
+      } else {
+        html += '<div class="card"><div class="tiny">Операция ещё не отмечена. ' +
+          'Открой <code>webapp/data/bases.json</code>, найди «' + esc(b.name) +
+          '» и впиши номер операции в <code>"ops"</code> — база появится на её странице.</div></div>';
+      }
+
+      html += UI.rowItem({ title: '🏭 Все базы', sub: 'Каталог схем', href: '#/bases' });
+
+      return {
+        title: b.name, html: html,
+        after: function (root) {
+          root.querySelectorAll('[data-shot]').forEach(function (el) {
+            el.onclick = function () {
+              var s = b.shots[+el.dataset.shot];
+              UI.lightbox(s.img, b.name + ' · ур. ' + s.lvl + ' · ' + s.fp + ' очков силы');
+            };
+          });
+        }
+      };
+    });
   }
 
   function stat(label, value) {
@@ -202,7 +332,15 @@
 
       var lvls = e.levels;
       var maxL = lvls ? CALC.maxLevel(e) : 0;
+      var minL = 1;
+      if (lvls) {
+        lvls.rows.forEach(function (r) {
+          var n = CALC.toNum(r[0]);
+          if (!isNaN(n) && n < minL) minL = n;
+        });
+      }
       var startL = Math.min(maxL, 10) || 1;
+      var lvlWord = lvls && /марка/i.test(lvls.headers[0]) ? 'Марка' : 'Ур.';
 
       var infoKeys = Object.keys(e.info || {});
       var head =
@@ -210,7 +348,7 @@
           '<div class="art">' + (e.img ? '<img src="' + esc(e.img) + '" alt="">' : '🏝️') + '</div>' +
           '<div><h2>' + esc(e.ru) + '</h2>' +
           '<div class="en">' + esc(e.en) + '</div>' +
-          (e.slang ? '<div class="sl">в чате: ' + esc(e.slang) + '</div>' : '') + '</div>' +
+          '</div>' +
         '</div>';
 
       var ruHtml = '';
@@ -239,8 +377,8 @@
         lvlHtml =
           UI.secTitle('Характеристики по уровням') +
           '<div class="lvlpick">' +
-            '<input type="range" id="lv" min="1" max="' + maxL + '" value="' + startL + '">' +
-            '<span class="lv" id="lvv">Ур. ' + startL + '</span>' +
+            '<input type="range" id="lv" min="' + minL + '" max="' + maxL + '" value="' + startL + '">' +
+            '<span class="lv" id="lvv">' + lvlWord + ' ' + startL + '</span>' +
           '</div>' +
           '<div class="statgrid" id="lvstats"></div>' +
           UI.accordion('Полная таблица', UI.table(lvls.headers, lvls.rows), false);
@@ -271,7 +409,7 @@
           if (!range) return;
           function paint() {
             var l = parseInt(range.value, 10);
-            root.querySelector('#lvv').textContent = 'Ур. ' + l;
+            root.querySelector('#lvv').textContent = lvlWord + ' ' + l;
             var row = null;
             for (var i = 0; i < lvls.rows.length; i++) {
               if (CALC.toNum(lvls.rows[i][0]) === l) { row = lvls.rows[i]; break; }
@@ -281,7 +419,7 @@
             var cells = [];
             for (var c = 1; c < lvls.headers.length && cells.length < 8; c++) {
               var v = row[c];
-              if (!v || v === 'N/A' || v === '-') continue;
+              if (!v || v === 'N/A' || v === '-' || v === '—') continue;
               cells.push(stat(lvls.headers[c], v));
             }
             box.innerHTML = cells.join('');
@@ -295,10 +433,14 @@
 
   function guessTableName(headers) {
     var h = headers.join(' ').toLowerCase();
-    if (h.indexOf('энергия') >= 0) return 'Стоимость применений';
+    if (h.indexOf('всего энергии') >= 0) return 'Цена применений подряд';
     if (h.indexOf('ранг') >= 0) return 'Боевые корабли: ранги';
+    if (h.indexOf('жетон') >= 0) return 'Прото-жетоны';
+    if (h.indexOf('ур. штаба') >= 0) return 'Доступно по уровням штаба';
+    if (h.indexOf('способность') >= 0) return 'Способности по уровням';
     if (h.indexOf('статуи') >= 0) return 'Статуи';
-    return 'Таблица';
+    if (headers[0] === 'Ур.') return 'Вариант для боевых кораблей';
+    return 'Дополнительная таблица';
   }
 
   function relatedLinks(group, e) {
@@ -689,19 +831,6 @@
     });
   }
 
-  function slangView() {
-    return DB.load('guide').then(function (g) {
-      var html = '<div class="hero"><span class="hero-badge">словарь</span><h1>Сленг чата</h1>' +
-        '<p>Как мы называем операции, войска и оборонки.</p></div>' +
-        '<div class="card"><dl class="kv" style="grid-template-columns:auto 1fr;gap:10px 14px">' +
-        g.slang.map(function (s) {
-          return '<dt style="color:var(--gold);font-weight:700;white-space:nowrap">' + esc(s.w) + '</dt>' +
-            '<dd style="text-align:left;font-weight:400;color:var(--muted)">' + esc(s.m) + '</dd>';
-        }).join('') + '</dl></div>';
-      return { title: 'Сленг', html: html };
-    });
-  }
-
   function faqView() {
     return DB.load('guide').then(function (g) {
       var html = '<div class="hero"><span class="hero-badge">вопросы</span><h1>FAQ</h1>' +
@@ -710,66 +839,6 @@
           return UI.accordion(f.q, '<p style="color:var(--muted);margin:0;line-height:1.5">' + esc(f.a) + '</p>', false);
         }).join('');
       return { title: 'FAQ', html: html };
-    });
-  }
-
-  /* ======================= ГАЛЕРЕЯ ======================= */
-
-  var galFilter = { t: 'Все', q: '' };
-
-  function gallery() {
-    return DB.load('gallery').then(function (list) {
-      var topics = ['Все'];
-      list.forEach(function (i) { if (topics.indexOf(i.t) < 0) topics.push(i.t); });
-
-      var html =
-        '<div class="hero" style="background:linear-gradient(135deg,var(--gold-soft),transparent)">' +
-          '<span class="hero-badge">архив</span><h1>Схемы и скрины</h1>' +
-          '<p>' + list.length + ' игровых скриншотов из чата опергруппы: базы, операции, награды, события.</p>' +
-        '</div>' +
-        '<div class="searchbar" style="margin-bottom:10px">' +
-          '<svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>' +
-          '<input id="g-q" placeholder="Поиск по подписи или автору" value="' + esc(galFilter.q) + '">' +
-        '</div>' +
-        UI.seg(topics.map(function (t) { return { v: t, t: t }; }), galFilter.t, 'data-gt') +
-        '<div id="g-count" class="tiny" style="margin:9px 2px"></div>' +
-        '<div class="gal" id="g-grid"></div>';
-
-      return {
-        title: 'Схемы',
-        html: html,
-        after: function (root) {
-          function draw() {
-            var q = galFilter.q.toLowerCase();
-            var f = list.filter(function (i) {
-              if (galFilter.t !== 'Все' && i.t !== galFilter.t) return false;
-              if (!q) return true;
-              return (i.c + ' ' + i.a + ' ' + i.d).toLowerCase().indexOf(q) >= 0;
-            });
-            root.querySelector('#g-count').textContent = f.length + ' из ' + list.length;
-            root.querySelector('#g-grid').innerHTML = f.slice(0, 400).map(function (i) {
-              return '<button data-g="' + esc(i.f) + '"><img loading="lazy" src="img/gallery/t/' + esc(i.f) + '.webp" alt=""></button>';
-            }).join('') || '<div class="empty"><i>🔍</i>Ничего не нашлось</div>';
-            root.querySelectorAll('[data-g]').forEach(function (b) {
-              b.onclick = function () {
-                var it = list.filter(function (x) { return x.f === b.dataset.g; })[0];
-                UI.lightbox('img/gallery/' + it.f + '.webp',
-                  (it.c ? it.c + ' — ' : '') + it.a + ', ' + it.d);
-              };
-            });
-          }
-          root.querySelectorAll('[data-gt]').forEach(function (b) {
-            b.onclick = function () {
-              galFilter.t = b.dataset.gt;
-              root.querySelectorAll('[data-gt]').forEach(function (x) { x.classList.toggle('on', x === b); });
-              draw(); UI.haptic('sel');
-            };
-          });
-          var q = root.querySelector('#g-q');
-          q.oninput = function () { galFilter.q = q.value; draw(); };
-          draw();
-        }
-      };
     });
   }
 
@@ -789,9 +858,9 @@
           { icon: '🎖️', title: 'Герои', sub: '5 героев', href: '#/cat/heroes', accent: 'gold' },
           { icon: '🏗️', title: 'Постройки', sub: 'Экономика и штаб', href: '#/cat/buildings', accent: 'teal' },
           { icon: '⚡', title: 'Прото-оборона', sub: '12 прототипов', href: '#/cat/proto_defenses', accent: 'blue' },
-          { icon: '🗣️', title: 'Сленг чата', sub: 'Словарь', href: '#/slang', accent: 'gold' },
+          { icon: '🏭', title: 'Базы операций', sub: 'Схемы разведки', href: '#/bases', accent: 'gold' },
           { icon: '❓', title: 'FAQ', sub: 'Частые вопросы', href: '#/faq', accent: 'teal' },
-          { icon: '🖼️', title: 'Схемы и скрины', sub: 'Архив из чата', href: '#/gallery', accent: 'red' },
+          { icon: '📖', title: 'Механики', sub: 'Интел, очки силы, подбор', href: '#/p/meta/intel', accent: 'red' },
           { icon: '📚', title: 'Вся вики', sub: 'Механики и события', href: '#/cat/meta', accent: 'blue' }
         ]) +
 
@@ -812,7 +881,7 @@
       var html =
         '<div class="searchbar" style="margin-bottom:12px">' +
           '<svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>' +
-          '<input id="s-q" placeholder="Юнит, оборонка, операция, сленг…" value="' + esc(q) + '">' +
+          '<input id="s-q" placeholder="Юнит, оборонка, операция, база…" value="' + esc(q) + '">' +
         '</div><div id="s-res"></div>';
       return {
         title: 'Поиск',
@@ -823,12 +892,12 @@
           function draw() {
             var r = DB.search(inp.value);
             if (!inp.value.trim()) {
-              box.innerHTML = '<div class="empty"><i>🔎</i>Введи название: «базука», «порез», «шоковая», «дупло»…</div>';
+              box.innerHTML = '<div class="empty"><i>🔎</i>Введи название: «базука», «шоковая», «дуплексность», «лабиринт»…</div>';
               return;
             }
             if (!r.length) { box.innerHTML = '<div class="empty"><i>🤷</i>Ничего не нашлось</div>'; return; }
             box.innerHTML = r.map(function (i) {
-              var tag = i.kind === 'op' ? '⚔️ ' : i.kind === 'article' ? '📋 ' : i.kind === 'slang' ? '🗣️ ' : '';
+              var tag = i.kind === 'op' ? '⚔️ ' : i.kind === 'article' ? '📋 ' : i.kind === 'base' ? '🏭 ' : '';
               return UI.rowItem({ title: tag + i.title, sub: i.sub, img: i.img, href: i.href });
             }).join('');
           }
@@ -841,9 +910,10 @@
   }
 
   global.VIEWS = {
-    home: home, ops: ops, catalog: catalog, detail: detail,
+    home: home, ops: ops, operation: operation, bases: bases, base: base,
+    catalog: catalog, detail: detail,
     gunboat: gunboat, calcView: calcView, statues: statues,
-    guideArticle: guideArticle, slangView: slangView, faqView: faqView,
-    gallery: gallery, more: more, searchView: searchView
+    guideArticle: guideArticle, faqView: faqView,
+    more: more, searchView: searchView
   };
 })(window);
