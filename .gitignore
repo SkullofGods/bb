@@ -1,0 +1,11 @@
+# кеш страниц вики (скачивается заново через tools/build.py)
+tools/cache/
+
+# выгрузки чата Telegram — большие и не нужны в репозитории
+ChatExport_*/
+
+__pycache__/
+*.pyc
+.env
+.DS_Store
+Thumbs.db
