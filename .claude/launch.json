@@ -4,7 +4,7 @@
     {
       "name": "miniapp",
       "runtimeExecutable": "py",
-      "runtimeArgs": ["-3", "serve.py", "8765"],
+      "runtimeArgs": ["-3", "server.py", "8765"],
       "port": 8765
     }
   ]
