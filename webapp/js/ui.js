@@ -129,6 +129,23 @@
     document.body.style.overflow = '';
   }
 
+  /* Память браузера. В Telegram на телефоне доступа к ней может не быть —
+     обращение к localStorage там бросает исключение, поэтому только так. */
+  var store = {
+    get: function (key, fallback) {
+      try {
+        var v = localStorage.getItem(key);
+        return v === null ? fallback : v;
+      } catch (e) { return fallback; }
+    },
+    set: function (key, value) {
+      try { localStorage.setItem(key, value); } catch (e) { /* память недоступна */ }
+    },
+    del: function (key) {
+      try { localStorage.removeItem(key); } catch (e) { /* память недоступна */ }
+    }
+  };
+
   function haptic(kind) {
     try {
       var h = global.Telegram && global.Telegram.WebApp && global.Telegram.WebApp.HapticFeedback;
@@ -143,6 +160,6 @@
     accordion: accordion, bullets: bullets, num: num,
     sheet: sheet, closeSheet: closeSheet,
     lightbox: lightbox, closeLightbox: closeLightbox, rotateLightbox: rotateLightbox,
-    haptic: haptic
+    store: store, haptic: haptic
   };
 })(window);

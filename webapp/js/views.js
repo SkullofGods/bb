@@ -55,7 +55,7 @@
 
   /* ======================= ОПЕРАЦИИ ======================= */
 
-  var opTfSize = localStorage.getItem('bb_tf') || '25';
+  var opTfSize = UI.store.get('bb_tf', '25');
 
   function ops(params) {
     return DB.loadAll(['ops', 'guide']).then(function (res) {
@@ -108,7 +108,7 @@
           root.querySelectorAll('[data-tf]').forEach(function (b) {
             b.onclick = function () {
               opTfSize = b.dataset.tf;
-              localStorage.setItem('bb_tf', opTfSize);
+              UI.store.set('bb_tf', opTfSize);
               root.querySelectorAll('[data-tf]').forEach(function (x) { x.classList.toggle('on', x === b); });
               drawOpsTable(root, data.ops);
               UI.haptic('sel');
@@ -737,7 +737,7 @@
       };
     });
     root.querySelector('#c-reset').onclick = function () {
-      localStorage.removeItem('bb_calc_v1');
+      UI.store.del('bb_calc_v1');
       App.go('#/calc', true);
     };
 

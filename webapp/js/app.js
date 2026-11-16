@@ -172,7 +172,13 @@
     } catch (e) { /* открыто вне Telegram */ }
   }
   applyTheme();
-  matchMedia('(prefers-color-scheme: light)').addEventListener('change', applyTheme);
+  // addEventListener у matchMedia появился не везде: в старых webview
+  // (в том числе внутри Telegram) есть только addListener
+  try {
+    var mq = matchMedia('(prefers-color-scheme: light)');
+    if (mq.addEventListener) mq.addEventListener('change', applyTheme);
+    else if (mq.addListener) mq.addListener(applyTheme);
+  } catch (e) { /* тема просто не будет переключаться на лету */ }
 
   global.App = { go: go, back: back, render: render };
 

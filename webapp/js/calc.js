@@ -26,7 +26,7 @@
 
   function loadState() {
     try {
-      var s = JSON.parse(localStorage.getItem(KEY));
+      var s = JSON.parse(UI.store.get(KEY, 'null'));
       if (!s || typeof s !== 'object') return defaults();
       var d = defaults();
       Object.keys(d).forEach(function (k) { if (s[k] == null) s[k] = d[k]; });
@@ -38,7 +38,7 @@
   }
 
   function saveState(s) {
-    try { localStorage.setItem(KEY, JSON.stringify(s)); } catch (e) { /* приватный режим */ }
+    UI.store.set(KEY, JSON.stringify(s));
   }
 
   /* --- доступ к таблицам вики --- */

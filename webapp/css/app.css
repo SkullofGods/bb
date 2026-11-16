@@ -78,6 +78,7 @@ body::before {
   display: flex; align-items: center; gap: 6px;
   height: calc(var(--top-h) + var(--safe-t));
   padding: var(--safe-t) 8px 0;
+  background: var(--bg);
   background: color-mix(in srgb, var(--bg) 82%, transparent);
   backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
   border-bottom: 1px solid var(--line);
@@ -109,6 +110,7 @@ main {
   display: grid; grid-template-columns: repeat(5, 1fr);
   height: calc(var(--tab-h) + var(--safe-b));
   padding-bottom: var(--safe-b);
+  background: var(--bg);
   background: color-mix(in srgb, var(--bg) 88%, transparent);
   backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
   border-top: 1px solid var(--line);
@@ -235,11 +237,13 @@ th, td { padding: 8px 10px; text-align: right; border-bottom: 1px solid var(--li
 th {
   position: sticky; top: 0; z-index: 2; font-size: 10.5px; font-weight: 800;
   text-transform: uppercase; letter-spacing: .5px; color: var(--muted);
+  background: var(--bg);
   background: color-mix(in srgb, var(--bg) 92%, transparent);
   backdrop-filter: blur(6px);
 }
 th:first-child, td:first-child {
   text-align: left; position: sticky; left: 0; z-index: 1;
+  background: var(--bg);
   background: color-mix(in srgb, var(--bg) 94%, transparent);
   font-weight: 700;
 }
