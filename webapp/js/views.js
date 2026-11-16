@@ -174,7 +174,7 @@
           'Для этой операции базы ещё не отмечены. Набор баз генерируется заново при каждом запуске, ' +
           'поэтому список собирается по скриншотам разведки.</p>' +
           '<div class="tiny">Как добавить: скрин разведки базы → <code>webapp/img/bases/</code>, ' +
-          'строка в <code>webapp/data/bases.json</code> с номером операции ' + o.n + '.</div></div>' +
+          'строка в <code>webapp/content/bases.json</code> с номером операции ' + o.n + '.</div></div>' +
           UI.rowItem({ title: '🏭 Все известные базы', sub: 'Каталог со схемами', href: '#/bases' });
       }
 
@@ -274,7 +274,7 @@
         }).join('');
       } else {
         html += '<div class="card"><div class="tiny">Операция ещё не отмечена. ' +
-          'Открой <code>webapp/data/bases.json</code>, найди «' + esc(b.name) +
+          'Открой <code>webapp/content/bases.json</code>, найди «' + esc(b.name) +
           '» и впиши номер операции в <code>"ops"</code> — база появится на её странице.</div></div>';
       }
 

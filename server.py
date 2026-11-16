@@ -110,6 +110,17 @@ def main():
         except (ValueError, AttributeError, OSError):
             pass  # сигналы ставятся только из главного потока
 
+    # Короткая опись того, что реально доехало до контейнера: если какой-то
+    # папки нет, это сразу видно в логах, а не по россыпи 404
+    try:
+        parts = []
+        for name in sorted(os.listdir(ROOT)):
+            full = os.path.join(ROOT, name)
+            parts.append(f"{name}/{len(os.listdir(full))}" if os.path.isdir(full) else name)
+        print(f"Содержимое {ROOT}: {', '.join(parts)}", flush=True)
+    except OSError as e:
+        print(f"Не смог прочитать {ROOT}: {e}", flush=True)
+
     print(f"Мини-приложение слушает 0.0.0.0:{PORT}", flush=True)
     print(f"Локально: http://localhost:{PORT}  ·  в сети: http://{local_ip()}:{PORT}", flush=True)
     try:

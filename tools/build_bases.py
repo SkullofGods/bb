@@ -5,7 +5,7 @@
 
 Список BASES ниже собран вручную: название, уровень и очки силы прочитаны
 с самих скриншотов. Чтобы добавить базу — положи скрин в webapp/img/bases
-и допиши запись в webapp/data/bases.json (формат описан в README).
+и допиши запись в webapp/content/bases.json (формат описан в README).
 """
 import glob
 import json
@@ -104,7 +104,7 @@ def main():
         })
 
     out = sorted(bases.values(), key=lambda b: -max(s["fp"] for s in b["shots"]))
-    json.dump(out, open(os.path.join(APP, "data", "bases.json"), "w", encoding="utf-8"),
+    json.dump(out, open(os.path.join(APP, "content", "bases.json"), "w", encoding="utf-8"),
               ensure_ascii=False, indent=1)
     print(f"баз: {len(out)}, скринов: {sum(len(b['shots']) for b in out)} -> data/bases.json")
     for b in out:

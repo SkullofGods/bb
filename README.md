@@ -160,10 +160,10 @@ py -3 bot.py
 
 | Что поменять | Где |
 |---|---|
-| Правила опергруппы, гайды, советы | `webapp/data/guide.json` → `articles` |
-| Базы операций и их схемы | `webapp/data/bases.json` |
-| Частые вопросы | `webapp/data/guide.json` → `faq` |
-| Русские описания юнитов и обороны | `webapp/data/ru_text.json` |
+| Правила опергруппы, гайды, советы | `webapp/content/guide.json` → `articles` |
+| Базы операций и их схемы | `webapp/content/bases.json` |
+| Частые вопросы | `webapp/content/guide.json` → `faq` |
+| Русские описания юнитов и обороны | `webapp/content/ru_text.json` |
 | Названия операций | `tools/ru_names.py` → `OPS`, затем `py -3 tools/build.py` |
 | Русские названия юнитов и зданий | `tools/ru_names.py` → `RU`, затем `py -3 tools/build.py` |
 
@@ -213,7 +213,7 @@ rmdir /s /q tools\cache
 py -3 tools/build.py
 ```
 
-Пересоберёт `data/*.json` и докачает недостающие иконки.
+Пересоберёт `content/*.json` и докачает недостающие иконки.
 Ручные файлы (`ru_text.json`, `guide.json`, `bases.json`) при этом не трогаются.
 
 После правки файлов в `webapp/js` или `webapp/css` подними номер версии
@@ -236,7 +236,7 @@ py -3 tools/build.py
 
 1. Сделай в игре скрин разведки базы (виден её заголовок с названием и очками силы).
 2. Положи картинку в `webapp/img/bases/`, маленькую копию — в `webapp/img/bases/t/`.
-3. Допиши запись в `webapp/data/bases.json`:
+3. Допиши запись в `webapp/content/bases.json`:
 
 ```json
 {

@@ -8,7 +8,9 @@
   function load(name) {
     if (cache[name]) return Promise.resolve(cache[name]);
     if (pending[name]) return pending[name];
-    pending[name] = fetch('data/' + name + '.json', { cache: 'no-cache' })
+    // Папка называется content, а не data: на хостинге папка data особая
+    // (персистентный том), файлы приложения из неё не отдаются.
+    pending[name] = fetch('content/' + name + '.json', { cache: 'no-cache' })
       .then(function (r) {
         if (!r.ok) throw new Error('Не удалось загрузить ' + name + ' (' + r.status + ')');
         return r.json();

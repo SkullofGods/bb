@@ -3,7 +3,7 @@
 
     py -3 tools/build.py
 
-Кладёт данные в webapp/data и иконки в webapp/img.
+Кладёт данные в webapp/content и иконки в webapp/img.
 Страницы вики кешируются в tools/cache — повторный запуск быстрый.
 Чтобы перекачать вики заново, удали папку tools/cache.
 
@@ -28,7 +28,7 @@ from ru_names import RU, HDR, OPS
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 APP = os.path.join(ROOT, "webapp")
-DATA = os.path.join(APP, "data")
+DATA = os.path.join(APP, "content")
 IMG = os.path.join(APP, "img")
 GAL = os.path.join(IMG, "gallery")
 CACHE = os.path.join(ROOT, "tools", "cache")
