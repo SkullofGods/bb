@@ -17,5 +17,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # The host passes the port in PORT and expects the app to listen on 0.0.0.0.
+# bot.py is the entry point the host always uses: it serves webapp and starts
+# the optional bot only when BOT_TOKEN is set.
 EXPOSE 3000
-CMD ["python", "server.py"]
+CMD ["python", "bot.py"]
