@@ -5,11 +5,11 @@
 иначе прокси хостинга не достучится и отдаст Bad Gateway, а контейнер получит
 SIGTERM. Локально порт можно задать аргументом:
 
-    py -3 server.py           # http://localhost:8765
+    py -3 server.py           # http://localhost:3000
     py -3 server.py 9000      # другой порт
 
-Если задан BOT_TOKEN, рядом поднимется бот из bot.py (кнопка «Справочник»).
-Без токена сервер просто отдаёт приложение — для мини-приложения бот не нужен.
+Точка входа на хостинге — bot.py: он поднимает этот сервер, а бота добавляет
+только если тот настроен.
 """
 import http.server
 import os
@@ -94,30 +94,6 @@ def local_ip():
         return "127.0.0.1"
 
 
-def start_bot_if_configured():
-    """Необязательный бот: только если задан токен и установлен aiogram."""
-    if not os.environ.get("BOT_TOKEN"):
-        return
-    try:
-        import asyncio
-        import bot as bot_module
-    except Exception as e:  # нет aiogram или ошибка в боте — приложение важнее
-        print(f"Бот не запущен ({e.__class__.__name__}: {e}). Мини-приложение работает без него.",
-              flush=True)
-        return
-
-    def run():
-        try:
-            asyncio.run(bot_module.main())
-        except SystemExit as e:  # боту не хватило настроек — это не повод ронять сайт
-            print(f"Бот не запустился: {e}", flush=True)
-        except BaseException as e:
-            print(f"Бот остановился: {e.__class__.__name__}: {e}", flush=True)
-
-    threading.Thread(target=run, name="bot", daemon=True).start()
-    print("Бот запущен рядом с мини-приложением", flush=True)
-
-
 def main():
     if not os.path.isdir(ROOT):
         raise SystemExit(f"Нет папки с приложением: {ROOT}")
@@ -132,9 +108,7 @@ def main():
         try:
             signal.signal(sig, shutdown)
         except (ValueError, AttributeError, OSError):
-            pass  # в некоторых окружениях сигналы недоступны
-
-    start_bot_if_configured()
+            pass  # сигналы ставятся только из главного потока
 
     print(f"Мини-приложение слушает 0.0.0.0:{PORT}", flush=True)
     print(f"Локально: http://localhost:{PORT}  ·  в сети: http://{local_ip()}:{PORT}", flush=True)
