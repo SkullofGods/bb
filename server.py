@@ -21,9 +21,9 @@ import threading
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.join(BASE_DIR, "webapp")
 
-# bothost передаёт порт в PORT; аргумент командной строки важнее — им удобно
-# пользоваться локально
-PORT = int(sys.argv[1]) if len(sys.argv) > 1 else int(os.environ.get("PORT") or 8765)
+# bothost передаёт порт в PORT и по умолчанию ждёт 3000; аргумент командной
+# строки важнее — им удобно пользоваться локально
+PORT = int(sys.argv[1]) if len(sys.argv) > 1 else int(os.environ.get("PORT") or 3000)
 
 # Данные и разметка должны обновляться сразу, картинки можно держать в кеше долго
 NO_CACHE = (".html", ".json")
