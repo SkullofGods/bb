@@ -129,7 +129,10 @@
     if (t) {
       ev.preventDefault();
       UI.haptic('light');
-      go(t.dataset.href);
+      var href = t.dataset.href;
+      // маршрут приложения начинается с #, всё остальное — обычная ссылка
+      if (href.charAt(0) === '#') go(href);
+      else location.href = href;
       return;
     }
     if (ev.target.closest('[data-close]')) { UI.closeSheet(); return; }

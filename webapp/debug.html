@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Диагностика · Опергруппа</title>
+<style>
+  body { margin:0; padding:16px; background:#0a1a24; color:#eaf3f7;
+         font:14px/1.5 -apple-system,BlinkMacSystemFont,system-ui,sans-serif; }
+  h1 { font-size:18px; margin:0 0 4px; }
+  p.sub { color:#8ba6b4; margin:0 0 16px; font-size:13px; }
+  h2 { font-size:12px; text-transform:uppercase; letter-spacing:.7px; color:#8ba6b4;
+       margin:20px 0 8px; }
+  .row { display:flex; flex-wrap:wrap; gap:4px 8px; padding:7px 0;
+         border-bottom:1px solid rgba(255,255,255,.08); align-items:baseline; }
+  .row b { flex:1 0 auto; min-width:92px; font-weight:600; }
+  .row span { flex:1 1 150px; font-family:ui-monospace,Menlo,monospace; font-size:12px;
+              text-align:right; word-break:break-all; }
+  .ok { color:#6fe08a; } .bad { color:#ff6b5e; } .warn { color:#ffb22e; }
+  pre { background:rgba(255,255,255,.07); border-radius:10px; padding:11px; font-size:11.5px;
+        white-space:pre-wrap; word-break:break-word; margin:0; }
+  a.btn { display:inline-block; margin-top:18px; padding:11px 16px; border-radius:12px;
+          background:#ffb22e; color:#1a1205; font-weight:700; text-decoration:none; }
+</style>
+</head>
+<body>
+<h1>Диагностика мини-приложения</h1>
+<p class="sub">Открой эту страницу там, где приложение не работает, и пришли скриншот целиком.</p>
+
+<h2>Где мы</h2>
+<div id="where"></div>
+
+<h2>Файлы приложения</h2>
+<div id="files"></div>
+
+<h2>Что умеет браузер</h2>
+<div id="features"></div>
+
+<h2>Ошибки</h2>
+<pre id="errors">пока нет</pre>
+
+<a class="btn" href="./">Открыть приложение</a>
+
+<script>
+/* Только самый простой код: страница должна открываться даже там,
+   где не работает основное приложение. */
+var errors = [];
+window.onerror = function (msg, src, line) {
+  errors.push(msg + ' @ ' + String(src).split('/').pop() + ':' + line);
+  document.getElementById('errors').textContent = errors.join('\n');
+};
+
+function row(where, name, value, state) {
+  var d = document.createElement('div');
+  d.className = 'row';
+  var b = document.createElement('b');
+  b.textContent = name;
+  var s = document.createElement('span');
+  s.className = state || '';
+  s.textContent = value;
+  d.appendChild(b);
+  d.appendChild(s);
+  document.getElementById(where).appendChild(d);
+}
+
+/* --- Где мы --- */
+row('where', 'Адрес', location.href);
+row('where', 'Протокол', location.protocol,
+    location.protocol === 'https:' ? 'ok' : 'warn');
+var tg = window.Telegram && window.Telegram.WebApp;
+row('where', 'Открыто из Telegram', tg && tg.platform && tg.platform !== 'unknown'
+    ? 'да, ' + tg.platform : 'нет', 'ok');
+row('where', 'Версия Telegram', tg ? (tg.version || '—') : 'SDK не загрузился',
+    tg ? 'ok' : 'bad');
+row('where', 'Экран', screen.width + '×' + screen.height + ' @' + (window.devicePixelRatio || 1));
+row('where', 'Браузер', navigator.userAgent);
+
+/* --- Файлы --- */
+var files = ['index.html', 'css/app.css', 'js/data.js', 'js/ui.js', 'js/calc.js',
+             'js/views.js', 'js/app.js', 'content/ops.json', 'content/bases.json',
+             'img/headquarters.webp'];
+function check(name) {
+  var x = new XMLHttpRequest();
+  try {
+    x.open('GET', name + '?t=' + Date.now(), true);
+  } catch (e) {
+    row('files', name, 'не открылось: ' + e.message, 'bad');
+    return;
+  }
+  x.onreadystatechange = function () {
+    if (x.readyState !== 4) return;
+    var ok = x.status >= 200 && x.status < 400;
+    var size = x.responseText ? Math.round(x.responseText.length / 1024) + ' КБ' : '';
+    row('files', name, x.status + (size ? ' · ' + size : ''), ok ? 'ok' : 'bad');
+  };
+  x.onerror = function () { row('files', name, 'сеть недоступна', 'bad'); };
+  x.send();
+}
+for (var i = 0; i < files.length; i++) check(files[i]);
+
+/* --- Возможности браузера --- */
+function feat(name, test) {
+  var ok = false, note = '';
+  try { ok = !!test(); } catch (e) { note = ' (' + e.name + ')'; }
+  row('features', name, (ok ? 'есть' : 'нет') + note, ok ? 'ok' : 'bad');
+}
+feat('fetch', function () { return window.fetch; });
+feat('Promise', function () { return window.Promise; });
+feat('память (localStorage)', function () { localStorage.setItem('t', '1'); localStorage.removeItem('t'); return true; });
+feat('matchMedia.addEventListener', function () { return matchMedia('(min-width:1px)').addEventListener; });
+feat('CSS-переменные', function () { return window.CSS && CSS.supports && CSS.supports('color', 'var(--x)'); });
+feat('CSS color-mix', function () { return window.CSS && CSS.supports && CSS.supports('color', 'color-mix(in srgb, red 50%, blue)'); });
+feat('CSS inset', function () { return window.CSS && CSS.supports && CSS.supports('inset', '0'); });
+feat('element.closest', function () { return document.body.closest; });
+feat('Object.assign', function () { return Object.assign; });
+feat('dataset', function () { return document.body.dataset; });
+</script>
+</body>
+</html>
