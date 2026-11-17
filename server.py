@@ -31,6 +31,9 @@ LONG_CACHE = (".webp", ".png", ".jpg", ".jpeg", ".svg", ".ico")
 
 
 class Handler(http.server.SimpleHTTPRequestHandler):
+    # HTTP/1.1 — соединение переиспользуется. На мобильной связи это заметно:
+    # приложение тянет десяток файлов сразу, и рукопожатие на каждый дорого
+    protocol_version = "HTTP/1.1"
     extensions_map = dict(http.server.SimpleHTTPRequestHandler.extensions_map)
     extensions_map.update({
         ".webp": "image/webp",
@@ -78,10 +81,11 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         super().end_headers()
 
     def log_message(self, fmt, *args):
-        msg = fmt % args
-        if " 200 " not in msg and " 304 " not in msg:
-            sys.stdout.write(f"{self.address_string()} {msg}\n")
-            sys.stdout.flush()
+        # Пишем все запросы: по логам видно, доходит ли вообще обращение
+        # с телефона и какие файлы он успевает забрать
+        ua = self.headers.get("User-Agent", "")[:60]
+        sys.stdout.write(f"{self.address_string()} {fmt % args} | {ua}\n")
+        sys.stdout.flush()
 
 
 class Server(http.server.ThreadingHTTPServer):

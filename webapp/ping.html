@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>Проверка связи</title>
+</head>
+<body style="margin:0;padding:28px 20px;background:#0a1a24;color:#eaf3f7;
+             font:16px/1.5 -apple-system,BlinkMacSystemFont,system-ui,sans-serif">
+<h1 style="font-size:20px;margin:0 0 12px">Страница открылась</h1>
+<p style="color:#8ba6b4;margin:0 0 18px">
+  Самая простая страница: ни скриптов, ни стилей, ни картинок — ничего,
+  кроме этого текста. Если ты её видишь, значит сервер отвечает и сеть в порядке,
+  а причину надо искать в самом приложении.
+</p>
+<p id="t" style="font-family:ui-monospace,Menlo,monospace;font-size:13px;color:#ffb22e"></p>
+<p style="margin-top:22px"><a href="debug.html" style="color:#ffb22e">Диагностика</a>
+   &nbsp;·&nbsp; <a href="./" style="color:#ffb22e">Приложение</a></p>
+<script>
+document.getElementById('t').textContent =
+  'Открыто: ' + new Date().toLocaleString() + '\nАдрес: ' + location.href;
+</script>
+</body>
+</html>
