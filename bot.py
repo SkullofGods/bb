@@ -18,8 +18,24 @@ import threading
 import server
 
 BOT_TOKEN = os.environ.get("BOT_TOKEN", "").strip()
-WEBAPP_URL = (os.environ.get("WEBAPP_URL")
-              or (f"https://{os.environ['DOMAIN']}" if os.environ.get("DOMAIN") else "")).strip()
+
+
+def _public_url() -> str:
+    """Адрес приложения: из WEBAPP_URL, иначе из домена, который даёт хостинг.
+
+    Домен может прийти и с протоколом, и без, и со слэшем на конце —
+    приводим к одному виду, иначе Telegram получит битую ссылку и
+    мини-приложение просто не откроется.
+    """
+    raw = (os.environ.get("WEBAPP_URL") or os.environ.get("DOMAIN") or "").strip()
+    if not raw:
+        return ""
+    if not raw.startswith("http://") and not raw.startswith("https://"):
+        raw = "https://" + raw
+    return raw.rstrip("/")
+
+
+WEBAPP_URL = _public_url()
 # Ссылка на мини-приложение из BotFather (/newapp) — открывается в любом чате
 APP_LINK = os.environ.get("APP_LINK", "").strip()
 
@@ -52,6 +68,19 @@ def _build_bot():
             reply_markup=keyboard(),
         )
 
+    @dp.message(Command("adres", "адрес", "check"))
+    async def show_url(message: Message) -> None:
+        """Показывает, какой адрес бот отдаёт Telegram. Для проверки, когда
+        приложение не открывается: ссылку видно и по ней можно ткнуть."""
+        await message.answer(
+            "Адрес приложения: " + (WEBAPP_URL or "не задан") + "\n"
+            "Ссылка мини-приложения: " + (APP_LINK or "не задана") + "\n\n"
+            "Проверки:\n"
+            + (WEBAPP_URL + "/ping.html" if WEBAPP_URL else "—") + "\n"
+            + (WEBAPP_URL + "/debug.html" if WEBAPP_URL else "—"),
+            disable_web_page_preview=True,
+        )
+
     @dp.message(Command("start", "bb", "справочник"))
     async def start_group(message: Message) -> None:
         if not APP_LINK:
@@ -64,11 +93,17 @@ def _build_bot():
 
     async def run() -> None:
         bot = Bot(BOT_TOKEN)
+        me = await bot.get_me()
+        print(f"Бот @{me.username} подключён", flush=True)
         if WEBAPP_URL:
-            await bot.set_chat_menu_button(
-                menu_button=MenuButtonWebApp(text="Справочник",
-                                             web_app=WebAppInfo(url=WEBAPP_URL))
-            )
+            try:
+                await bot.set_chat_menu_button(
+                    menu_button=MenuButtonWebApp(text="Справочник",
+                                                 web_app=WebAppInfo(url=WEBAPP_URL))
+                )
+                print(f"Кнопка меню ведёт на {WEBAPP_URL}", flush=True)
+            except Exception as e:
+                print(f"Кнопку меню поставить не вышло: {e}", flush=True)
         # handle_signals=False обязателен: бот живёт в фоновом потоке, а
         # обработчики сигналов ставятся только из главного. Иначе aiogram
         # падает с «set_wakeup_fd only works in main thread».
@@ -107,6 +142,11 @@ def start_bot_in_background() -> None:
 
 
 def main() -> None:
+    # Адрес виден в логах: по нему сразу понятно, что именно откроет Telegram
+    print("Адрес приложения: " + (WEBAPP_URL or "не задан (переменные WEBAPP_URL / DOMAIN пусты)"),
+          flush=True)
+    if APP_LINK:
+        print("Ссылка мини-приложения: " + APP_LINK, flush=True)
     start_bot_in_background()
     server.main()          # блокирующий вызов, он же ловит SIGTERM
 
