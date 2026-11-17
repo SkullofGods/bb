@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Диагностика · Опергруппа</title>
+<script>window.APP_VERSION = 10;</script>
 <style>
   body { margin:0; padding:16px; background:#0a1a24; color:#eaf3f7;
          font:14px/1.5 -apple-system,BlinkMacSystemFont,system-ui,sans-serif; }
@@ -41,6 +42,8 @@
 
 <a class="btn" href="./">Открыть приложение</a>
 
+<!-- тот же локальный SDK, что и в приложении -->
+<script src="js/telegram-web-app.js"></script>
 <script>
 /* Только самый простой код: страница должна открываться даже там,
    где не работает основное приложение. */
@@ -72,6 +75,7 @@ row('where', 'Открыто из Telegram', tg && tg.platform && tg.platform !=
     ? 'да, ' + tg.platform : 'нет', 'ok');
 row('where', 'Версия Telegram', tg ? (tg.version || '—') : 'SDK не загрузился',
     tg ? 'ok' : 'bad');
+row('where', 'Сборка приложения', String(window.APP_VERSION || '—'));
 row('where', 'Экран', screen.width + '×' + screen.height + ' @' + (window.devicePixelRatio || 1));
 row('where', 'Браузер', navigator.userAgent);
 

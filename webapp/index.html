@@ -6,10 +6,10 @@
 <meta name="theme-color" content="#0b1f2a">
 <title>Опергруппа · Boom Beach</title>
 <link rel="icon" href="img/headquarters.webp">
-<link rel="stylesheet" href="css/app.css?v=9">
+<link rel="stylesheet" href="css/app.css?v=10">
 <script>
 // Номер сборки виден в разделе «Ещё» — по нему понятно, доехало ли обновление
-window.APP_VERSION = 9;
+window.APP_VERSION = 10;
 // Ставится до всего остального: если какой-то скрипт не выполнится,
 // лучше показать причину, чем пустой экран
 window.onerror = function (msg, src, line, col, err) {
@@ -31,7 +31,6 @@ window.onerror = function (msg, src, line, col, err) {
   } catch (e) { /* совсем всё плохо */ }
 };
 </script>
-<script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
 <div id="app">
@@ -65,10 +64,14 @@ window.onerror = function (msg, src, line, col, err) {
   <div class="lb-cap" id="lb-cap"></div>
 </div>
 
-<script src="js/data.js?v=9"></script>
-<script src="js/ui.js?v=9"></script>
-<script src="js/calc.js?v=9"></script>
-<script src="js/views.js?v=9"></script>
-<script src="js/app.js?v=9"></script>
+<!-- SDK Telegram лежит рядом, а не на telegram.org: оттуда он на телефоне
+     может не загрузиться, и блокирующий скрипт в <head> держал пустой экран.
+     Обновить: curl -o webapp/js/telegram-web-app.js https://telegram.org/js/telegram-web-app.js -->
+<script src="js/telegram-web-app.js?v=10"></script>
+<script src="js/data.js?v=10"></script>
+<script src="js/ui.js?v=10"></script>
+<script src="js/calc.js?v=10"></script>
+<script src="js/views.js?v=10"></script>
+<script src="js/app.js?v=10"></script>
 </body>
 </html>
