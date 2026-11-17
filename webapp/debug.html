@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Диагностика · Опергруппа</title>
-<script>window.APP_VERSION = 10;</script>
+<script>window.APP_VERSION = 11;</script>
 <style>
   body { margin:0; padding:16px; background:#0a1a24; color:#eaf3f7;
          font:14px/1.5 -apple-system,BlinkMacSystemFont,system-ui,sans-serif; }
@@ -76,6 +76,14 @@ row('where', 'Открыто из Telegram', tg && tg.platform && tg.platform !=
 row('where', 'Версия Telegram', tg ? (tg.version || '—') : 'SDK не загрузился',
     tg ? 'ok' : 'bad');
 row('where', 'Сборка приложения', String(window.APP_VERSION || '—'));
+if (tg) {
+  try { tg.ready(); tg.expand(); } catch (e) { /* не в Telegram */ }
+  row('where', 'Платформа', String(tg.platform || '—'));
+  row('where', 'Данные входа', tg.initData ? 'есть, ' + tg.initData.length + ' симв.' : 'нет');
+  row('where', 'Высота окна', String(tg.viewportHeight || '—'));
+  row('where', 'Развёрнуто', tg.isExpanded ? 'да' : 'нет');
+  row('where', 'Тема', String(tg.colorScheme || '—'));
+}
 row('where', 'Экран', screen.width + '×' + screen.height + ' @' + (window.devicePixelRatio || 1));
 row('where', 'Браузер', navigator.userAgent);
 

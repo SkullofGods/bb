@@ -67,7 +67,13 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         name = self.path.split("?")[0].lower()
         if name.endswith(LONG_CACHE):
             self.send_header("Cache-Control", "public, max-age=604800")
-        elif name.endswith(NO_CACHE) or name.endswith("/"):
+        elif name.endswith(".html") or name.endswith("/"):
+            # разметку не кешируем совсем: webview Telegram цепко держит
+            # старую страницу, и обновление до людей не доезжает
+            self.send_header("Cache-Control", "no-store, must-revalidate")
+            self.send_header("Pragma", "no-cache")
+            self.send_header("Expires", "0")
+        elif name.endswith(NO_CACHE):
             self.send_header("Cache-Control", "no-cache")
         super().end_headers()
 

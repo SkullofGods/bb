@@ -6,10 +6,10 @@
 <meta name="theme-color" content="#0b1f2a">
 <title>Опергруппа · Boom Beach</title>
 <link rel="icon" href="img/headquarters.webp">
-<link rel="stylesheet" href="css/app.css?v=10">
+<link rel="stylesheet" href="css/app.css?v=11">
 <script>
 // Номер сборки виден в разделе «Ещё» — по нему понятно, доехало ли обновление
-window.APP_VERSION = 10;
+window.APP_VERSION = 11;
 // Ставится до всего остального: если какой-то скрипт не выполнится,
 // лучше показать причину, чем пустой экран
 window.onerror = function (msg, src, line, col, err) {
@@ -67,11 +67,21 @@ window.onerror = function (msg, src, line, col, err) {
 <!-- SDK Telegram лежит рядом, а не на telegram.org: оттуда он на телефоне
      может не загрузиться, и блокирующий скрипт в <head> держал пустой экран.
      Обновить: curl -o webapp/js/telegram-web-app.js https://telegram.org/js/telegram-web-app.js -->
-<script src="js/telegram-web-app.js?v=10"></script>
-<script src="js/data.js?v=10"></script>
-<script src="js/ui.js?v=10"></script>
-<script src="js/calc.js?v=10"></script>
-<script src="js/views.js?v=10"></script>
-<script src="js/app.js?v=10"></script>
+<script src="js/telegram-web-app.js?v=11"></script>
+<script>
+// Telegram держит свой экран загрузки, пока приложение не скажет, что живо.
+// Говорим сразу после SDK, не дожидаясь загрузки данных.
+try {
+  if (window.Telegram && window.Telegram.WebApp) {
+    window.Telegram.WebApp.ready();
+    window.Telegram.WebApp.expand();
+  }
+} catch (e) { /* вне Telegram этого всего нет */ }
+</script>
+<script src="js/data.js?v=11"></script>
+<script src="js/ui.js?v=11"></script>
+<script src="js/calc.js?v=11"></script>
+<script src="js/views.js?v=11"></script>
+<script src="js/app.js?v=11"></script>
 </body>
 </html>
