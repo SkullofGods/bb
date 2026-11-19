@@ -324,9 +324,13 @@
   /* ======================= КАРТОЧКА ======================= */
 
   function detail(group, id) {
-    return DB.loadAll([group, 'ru_text']).then(function (res) {
-      var list = res[0], ruText = res[1];
+    return Promise.all([
+      DB.loadAll([group, 'ru_text']),
+      DB.load('ru_wiki').catch(function () { return {}; })
+    ]).then(function (res) {
+      var list = res[0][0], ruText = res[0][1], wikiRu = res[1];
       var ru = ruText[group + ':' + id];
+      var wRu = wikiRu[group + ':' + id] || {};
       var e = list.filter(function (x) { return x.id === id; })[0];
       if (!e) return { title: 'Не найдено', html: '<div class="empty"><i>🤷</i>Такой страницы нет</div>' };
 
@@ -366,6 +370,26 @@
             : '');
       }
 
+      /* «Топ-5 прототипов» — мнение из чата опергруппы */
+      if (ru && ru.op) {
+        var o = ru.op;
+        var medals = ['🥇 1 место', '🥈 2 место', '🥉 3 место', '4 место', '5 место'];
+        ruHtml += '<div class="card opinion">' +
+          '<div class="card-h">🏆 Топ-5 прототипов · ' + esc(medals[o.rank - 1] || o.rank + ' место') + '</div>' +
+          '<p class="tiny" style="margin:0 0 9px;color:var(--muted)">Мнение ' + esc(o.by) + '</p>' +
+          (o.what && o.what.length
+            ? '<div class="tiny" style="margin:0 0 7px;font-weight:700;color:var(--text)">Что делает</div>' +
+              '<ul class="use" style="margin-bottom:10px">' + o.what.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul>'
+            : '') +
+          ((o.p && o.p.length) || (o.m && o.m.length)
+            ? '<div class="pm">' +
+              (o.p || []).map(function (x) { return '<div class="pm-i plus">' + esc(x) + '</div>'; }).join('') +
+              (o.m || []).map(function (x) { return '<div class="pm-i minus">' + esc(x) + '</div>'; }).join('') +
+              '</div>' : '') +
+          (o.verdict ? '<div class="note tip" style="margin:10px 0 0"><b>Оценка</b>' + esc(o.verdict) + '</div>' : '') +
+          '</div>';
+      }
+
       var infoHtml = infoKeys.length
         ? '<div class="card" style="margin-top:10px"><dl class="kv">' + infoKeys.map(function (k) {
             return '<dt>' + esc(k) + '</dt><dd>' + esc(e.info[k]) + '</dd>';
@@ -390,13 +414,21 @@
       }).join('');
 
       var textHtml = (e.text || []).map(function (s) {
-        return UI.accordion(s.title, UI.bullets(s.lines), !ru && (s.title === 'Коротко' || s.title === 'Общая информация'));
+        var ruLines = wRu[s.title];
+        if (ruLines && ruLines.length) {
+          return UI.accordion(s.title, UI.bullets(ruLines),
+            !ru && s.title === 'Общая информация');
+        }
+        return UI.accordion(s.title + ' (англ.)', UI.bullets(s.lines),
+          !ru && (s.title === 'Коротко' || s.title === 'Общая информация'));
       }).join('');
 
       var related = relatedLinks(group, e);
 
       var html = head + ruHtml + infoHtml + lvlHtml +
-        (textHtml ? UI.secTitle(ru ? 'Подробно с вики (англ.)' : 'Описание и тактика') + textHtml : '') +
+        (textHtml ? UI.secTitle(ru
+          ? 'Подробно с вики' + ((e.text || []).some(function (s) { return !wRu[s.title]; }) ? ' · часть на англ.' : '')
+          : 'Описание и тактика') + textHtml : '') +
         (extrasHtml ? UI.secTitle('Другие таблицы') + extrasHtml : '') +
         related +
         '<div class="src"><a class="link" href="' + esc(e.wiki) + '" target="_blank" rel="noopener">Источник на вики ↗</a></div>';
@@ -814,6 +846,9 @@
       if (b.t === 'tip') return '<div class="note tip"><b>Совет</b>' + esc(b.v) + '</div>';
       if (b.t === 'warn') return '<div class="note warn"><b>Важно</b>' + esc(b.v) + '</div>';
       if (b.t === 'table') return UI.table(b.h, b.r);
+      if (b.t === 'links') return b.v.map(function (l) {
+        return UI.rowItem({ title: l.t, sub: l.s, href: l.h });
+      }).join('');
       return '';
     }).join('');
   }
@@ -895,7 +930,8 @@
           function draw() {
             var r = DB.search(inp.value);
             if (!inp.value.trim()) {
-              box.innerHTML = '<div class="empty"><i>🔎</i>Введи название: «базука», «шоковая», «дуплексность», «лабиринт»…</div>';
+              box.innerHTML = '<div class="empty"><i>🔎</i>Введи название: «базука», «дупло», «тяж», «лабиринт»…' +
+                '<div class="tiny" style="margin-top:6px">Понимает и сленг чата: «зука», «шу», «бочка»</div></div>';
               return;
             }
             if (!r.length) { box.innerHTML = '<div class="empty"><i>🤷</i>Ничего не нашлось</div>'; return; }

@@ -87,23 +87,289 @@ SECTION_RU = {
     "Weaponry": "Вооружение", "Possible Statues": "Какие бывают статуи",
 }
 
-VAL_WORDS = [
-    ("Not available at the moment!", "сейчас недоступно"),
+# Целые значения-предложения: точное совпадение до всех остальных правил.
+SENTENCES = {
+    "If destroyed, the battle ends.": "Если разрушен — бой заканчивается.",
+    "If all Power Cores are destroyed, the battle ends.": "Если разрушены все сердца силы — бой заканчивается.",
+    "Spawns Critters": "Выпускает криттеров",
+    "Immobilizes Troops": "Обездвиживает войска",
+    "Spawns Garrison Units after getting destroyed": "При разрушении выпускает гарнизонные войска",
+    "Summoned Units": "Призванные войска",
+    "Grabs an enemy unit and drags it next to the Grappler": "Хватает юнита гарпуном и подтаскивает к себе",
+    "Damages all units within range at the same time Ignores Smoke Screens":
+        "Бьёт всех в радиусе одновременно; игнорирует дымовую завесу",
+    "Can target troops under Smoke Screens Prioritizes targets with lower health.":
+        "Стреляет по войскам под дымом; добивает цели с наименьшим здоровьем.",
+    "Creates a shield around the Headquarters, Power Core, Mega Core or Engine Rooms.":
+        "Ставит щит вокруг штаба, сердца силы или машинных отделений.",
+    "Creates a shield around itself against Gunboat Weaponry":
+        "Купол вокруг себя, блокирующий оружие канонерки",
+    "Boosts the amount of damage that defenses near it deal. Does not deal damage by itself.":
+        "Усиливает урон соседних оборонок. Сам урона не наносит.",
+    "Prioritises Core Buildings over everything.": "Бьёт в первую очередь по ключевым постройкам.",
+    "Prioritise Core Buildings over everything.": "Бьёт в первую очередь по ключевым постройкам.",
+    "Yes, Promote up to Co-leaders and Demote Officers to Members":
+        "да — повышать до соруководителя, понижать офицеров",
+    "Yes, only Officers and Members": "да — только офицеров и участников",
+    "Yes, only Members once every 20 min": "да — участников, раз в 20 мин",
+    "Yes, only Members once every 20 minutes": "да — участников, раз в 20 мин",
+    "no change": "без изменений",
+    "Training Screen": "Экран обучения",
+    "Storage Screen": "Экран хранилища",
+    "No Proto Troop available": "нет готовых прототипов",
+    "Grenade Spammer": "Гранатный шквал",
+    "Robot Overlord": "Владыка роботов",
+    "Galvanizing Presence": "Воодушевляющее присутствие",
+    "Pain Tolerance": "Толстая шкура",
+    "Wingmen": "Напарники",
+    "Wingman Rush": "Рывок напарников",
+    "Bombing Run": "Бомбовый удар",
+    "Seeker Shot": "Выстрел искателя",
+    # способности героев (имена — по русской вики, где она есть)
+    "Cluster Grenade": "Кассетная граната",
+    "Iron Will": "Железная воля",
+    "Battle Orders": "Боевые приказы",
+    "Critter Swarm": "Рой криттеров",
+    "Explosive Charges": "Взрывной заряд",
+    "Universal Remote": "Суперпульт",
+    "Crystal Critters": "Крискриттеры",
+    "Ice Shields": "Ледяные щиты",
+    "Second Wind": "Второе дыхание",
+    "Taunt": "Провокация",
+    "Energy Drink": "Бодрящий напиток",
+    "Shock Knuckles": "Кастет-шокер",
+    # остальное
+    "Blackguard or Mercenary Invasion": "Вторжение Стражей Тьмы или наёмников",
+    "Boss Base Destroyed": "База босса разрушена",
+    "Chest Found by Exploring (when opened, first time only)":
+        "Сундук найден при исследовании (при первом открытии)",
+    "Colonel Gearheart's level 90 War Factory event":
+        "Событие «Военная фабрика» полковника Гирхарт, 90 ур.",
+    "Dr. T Event Base Destroyed": "База события Доктора Т разрушена",
+    "Home Base Destroyed": "Домашняя база разрушена",
+    "Imitation Stage cleared": "Стадия имитации пройдена",
+    "Initiate Friendly Challenges": "Устраивать дружеские вызовы",
+    "Manage Pinned Messages": "Закреплять сообщения",
+    "Report other Users": "Жаловаться на игроков",
+    "Mega Crab or Mega Turtle Stage cleared": "Стадия Мегакраба или Мегачерепахи пройдена",
+    "NPC Blackguard Base Destroyed": "База Стражей Тьмы (NPC) разрушена",
+    "Player Mercenary Base Destroyed": "База наёмников разрушена",
+    "Power Base destroyed": "Силовая база разрушена",
+    "No change": "без изменений",
+    "Time Savers": "Ускорители времени",
+    "Unknown Prototroop using Zooka as a Placeholder": "Неизвестный прототип (заглушка — Базука)",
+    "Special Buildings³": "Особые постройки³",
+    "Stealth": "Невидимость",
+    "Classified Items": "Секретные предметы",
+    "Lab Level": "Ур. лаборатории",
+    "Garrison Units attack enemy troops that are within the Garrison's range. "
+    "Additionally, a new Garrison Unit is spawned whenever one is defeated.":
+        "Гарнизонные войска атакуют врагов в радиусе гарнизона; "
+        "за каждого убитого появляется новый.",
+    "Continues to burn units for 5 seconds after they have received damage from it.^":
+        "Подожжённые войска горят ещё 5 с после попадания.^",
+    "distinct between 40s and 6m (based on level)": "40 с — 6 мин, зависит от уровня",
+    "Defensive Buildings": "Оборонные постройки",
+    "Prototype Defenses": "Прототипы обороны",
+    "Special Buildings": "Особые постройки",
+    "Traps": "Ловушки",
+    # описания оружия канонерки (таблица «Вооружение»)
+    "A single shot that damages enemy Buildings and triggers Mines":
+        "Одиночный выстрел: повреждает постройки и подрывает мины",
+    "Once one lands temporarily on the battlefield, Troops move towards it but cannot attack while doing so. "
+    "If it hits a building, troops will walk to it until they are in range to attack it.":
+        "Войска идут к точке падения и не атакуют на ходу. "
+        "Если ракета попала в постройку — идут, пока не окажутся в радиусе атаки.",
+    "Creates a temporary ring of healing that restores the health of Troops within its area of effect":
+        "Временное кольцо лечения: восстанавливает здоровье войск в зоне действия",
+    "Temporarily prevents enemy Defensive Buildings within its area of effect from firing, but does nothing to Mines":
+        "Временно отключает оборонки в зоне действия; на мины не действует",
+    "A volley of 15 smaller shots that damage enemy Buildings and trigger Mines in a small area":
+        "Залп из 15 мелких снарядов по небольшой площади: повреждает постройки и подрывает мины",
+    "Troops within its area of effect cannot be attacked by enemy Defensive Buildings but cannot attack either":
+        "Войска в дыму не видны обороне, но и сами не атакуют",
+    "A cluster of small blue robots that can distract enemy Defensive Buildings and trigger Mines":
+        "Стая мелких роботов: отвлекает оборону и подрывает мины",
+    # роли в опергруппе
+    "Promote/Demote Members": "Повышать/понижать участников",
+    "Edit Task Force Info": "Править информацию ОПГ",
+    "Kick Members": "Исключать участников",
+    "Start Operations": "Запускать операции",
+    "Sabotage": "Саботаж",
+    "Invite Friends": "Приглашать друзей",
+    "Post/Edit Notes on Power Bases": "Писать/править заметки на базах",
+    "Accept/Deny Membership Requests": "Принимать/отклонять заявки",
+    "Chat/Share Replays": "Писать в чат и делиться реплеями",
+    "Attack in Operations": "Атаковать в операциях",
+    "да, Promote up to Co-leaders and Demote Officers to Members":
+        "да — повышать до соруководителя, понижать офицеров",
+    "да, only Officers and Members": "да — только офицеров и участников",
+    "да, only Members once every 20 мин": "да — участников, раз в 20 мин",
+    # бонусы статуй
+    "Gold production increase": "Добыча золота",
+    "Wood , Stone or Iron production increase": "Добыча дерева, камня или железа",
+    "All Resources Production increase": "Добыча всех ресурсов",
+    "Building Health increase": "Прочность построек",
+    "Defensive Building Damage increase": "Урон обороны",
+    "Troop Health increase": "Прочность войск",
+    "Troop Damage increase": "Урон войск",
+    "Gunboat Energy increase": "Энергия канонерки",
+    "Resource Reward increase": "Награда ресурсами",
+    "Power Stone chance increase": "Шанс камней силы",
+    # гравировки: имена и описания
+    "Power Surge": "Скачок энергии",
+    "Ordnance": "Боеприпасы",
+    "Adrenaline": "Адреналин",
+    "Insulation": "Изоляция",
+    "Rally": "Сбор",
+    "Leech": "Пиявка",
+    "Interference": "Помехи",
+    "Armor": "Броня",
+    "Triage": "Триаж",
+    "Alchemy": "Алхимия",
+    "Grounding": "Заземление",
+    "Shielding": "Экранирование",
+    "Overdrive": "Разгон",
+    "Life Drain": "Похищение жизни",
+    "Hardening": "Закалка",
+    "Overheat": "Перегрев",
+    "Support": "Поддержка",
+    "Mind Fog": "Туман разума",
+    "Tinkering": "Ремонт",
+    "Disruption": "Срыв",
+    "Mind Control": "Контроль разума",
+    "Insurance": "Страховка",
+    "Gives additional Gunboat energy for each destroyed building.":
+        "Дополнительная энергия канонерки за каждое разрушенное здание.",
+    "Increases damage for Barrage and Artillery abilities.":
+        "Усиливает обстрел и артиллерию.",
+    "Increases your units' movement and attack speed.":
+        "Ускоряет движение и атаку войск.",
+    "Reduces the duration of inhibiting effects, such as stun and freeze, on your troops.":
+        "Сокращает оглушение и заморозку своих войск.",
+    "Boosts your remaining units' speed each time you lose a unit. Bigger units give more boost.":
+        "Ускоряет оставшихся войск после каждой потери: чем крупнее юнит, тем сильнее рывок.",
+    "All units heal themselves of the damage they do.":
+        "Войска лечатся на часть нанесённого урона.",
+    "Slows down enemy defenses.": "Замедляет вражескую оборону.",
+    "Decreases enemy defensive Statues' effectiveness.":
+        "Ослабляет действие оборонных статуй врага.",
+    "Decreases the base damage per shot of enemy defenses.":
+        "Снижает базовый урон выстрелов вражеской обороны.",
+    "Your troops gain a portion of the opponent's offensive statue boosts.":
+        "Войска получают часть атакующих бонусов статуй противника.",
+    "Restores a portion of lost units after a battle.":
+        "Возвращает часть потерянных войск после боя.",
+    "Increases loot gained and converts looted construction resources to resource types you are missing.":
+        "Больше добычи; лишние ресурсы конвертируются в недостающие.",
+    "Reduces the amount of Gunboat energy opponents gain for each destroyed building.":
+        "Противник получает меньше энергии за разрушенные здания.",
+    "Reduces the duration of inhibiting effects, such as stun and freeze, on your buildings.":
+        "Сокращает оглушение и заморозку своих построек.",
+    "Increases the attack speed of your defenses .": "Ускоряет атаку своей обороны.",
+    "Deals damage to attacking units each second equal to a certain percentage of their base max health.":
+        "Каждую секунду наносит атакующим урон в проценте от их максимального здоровья.",
+    "Reduces the damage of opponents' Gunboat abilities.":
+        "Снижает урон способностей канонерки противника.",
+    "Gives opponent's heroes and leaders a cooldown on their abilities.":
+        "Способности героев противника уходят на перезарядку.",
+    "Buildings transfer an amount of damage taken to nearby buildings.":
+        "Постройки передают часть полученного урона соседним.",
+    "Reduces the movement and attack speed of opponents' troops.":
+        "Замедляет движение и атаку войск противника.",
+    "You gain an additional prototype defense slot and Gunboat damage taken by prototypes is reduced.":
+        "Дополнительный слот оборонного прототипа; прототипы получают меньше урона от канонерки.",
+    "Reduces the effect of opponents' offensive statues.":
+        "Ослабляет атакующие статуи противника.",
+    "You gain an amount of energy per second. At 20 energy resurrects fallen opponents to defend you.":
+        "Энергия накапливается сама; на 20 энергии воскрешает павших врагов на своей стороне.",
+    "Returns an amount of the resources lost due to base being raided.":
+        "Возвращает часть ресурсов, потерянных при разграблении базы.",
+}
+
+# Многословные фразы — заменяются целиком, с границами слов, без учёта регистра.
+PHRASES = [
+    ("between shots in salvo", "между выстрелами очереди"),
+    ("between shots in burst", "между выстрелами очереди"),
+    ("between shots at the same target", "между выстрелами по одной цели"),
+    ("between salvos of", "между очередями по"),
+    ("between each salvo", "между залпами"),
+    ("between each Critter", "между криттерами"),
+    ("reload time after", "перезарядка после"),
+    ("electric pulses every", "электрических импульса каждые"),
+    ("freezing pulses every", "морозных импульсов каждые"),
+    ("then reload", "затем перезарядка"),
+    ("based on level", "зависит от уровня"),
+    ("distinct between", "различается: от"),
+    ("Not available at the moment", "сейчас недоступно"),
     ("Very Fast", "очень быстрая"), ("Very Slow", "очень медленная"),
-    ("Moderate", "средняя"), ("Medium", "средняя"), ("Slow", "медленная"),
-    ("Fast", "быстрая"), ("Melee", "ближний бой"), ("Long", "длинная"),
-    ("Short", "короткая"), ("Tiles", "кл."), ("Tile", "кл."), ("tiles", "кл."),
-    ("Splash", "по площади"), ("Single", "по одной цели"),
-    ("Ground and Air", "земля и воздух"), ("Ground", "земля"), ("Air", "воздух"),
-    ("depends", "зависит"), ("None", "нет"), ("Yes", "да"), ("No", "нет"),
-    ("Buildings", "постройки"), ("Troops", "войска"),
+    ("Very Long", "очень длинная"), ("Very Short", "очень короткая"),
+    ("Ground and Air", "земля и воздух"),
+    ("every second day for Free", "через день — бесплатно"),
+    ("every second day", "через день"),
+    ("Coming soon", "скоро"),
+    ("Level ", "Ур. "),
+    ("Field Manuals", "полевых уставов"), ("Field Manual", "полевой устав"),
+    ("Action Reports", "боевых отчётов"), ("Action Report", "боевой отчёт"),
+    ("Builder Tokens", "жетонов строителя"), ("Builder Token", "жетон строителя"),
+    ("Reset Tokens", "жетонов сброса"), ("Reset Token", "жетон сброса"),
+    ("Mercenary Contracts", "контрактов наёмника"), ("Mercenary Contract", "контракт наёмника"),
+    ("Power Powder", "энергетик"),
+    ("keys every", "ключей каждые"),
+    ("Better Chest value", "сундуки выгоднее"),
+    ("Better Starting Rank", "лучший стартовый ранг"),
+    ("All players start with", "все игроки начинают с"),
 ]
+
+# Однословные замены — только по границам слова, чтобы «Grounded»
+# не превращался в «земляed», а «November» — в «нетvember».
+WORD_MAP = {
+    "Moderate": "средняя", "Medium": "средняя", "Slow": "медленная",
+    "Fast": "быстрая", "Melee": "ближний бой", "Long": "длинная",
+    "Short": "короткая", "Tiles": "кл.", "Tile": "кл.",
+    "Splash": "по площади", "Single": "по одной цели",
+    "Ground": "земля", "Air": "воздух",
+    "Buildings": "постройки", "Troops": "войска", "Units": "юниты",
+    "depends": "зависит", "None": "нет", "Yes": "да", "No": "нет",
+    "Free": "бесплатно", "seconds": "с", "second": "с", "sec": "с",
+    "minutes": "мин", "minute": "мин", "min": "мин",
+    "days": "дн.", "day": "дн.", "hours": "ч", "hour": "ч",
+    "gained": "получено", "lost": "потеряно", "formerly": "раньше",
+    "keys": "ключей", "Free": "бесплатно",
+    "Crystal": "кристалл", "Crystals": "кристаллов",
+    "Shard": "осколок", "Shards": "осколков",
+    "Fragment": "фрагмент", "Fragments": "фрагментов",
+    "Module": "модулей", "Modules": "модулей",
+    "Keycard": "ключ-карт", "Keycards": "ключ-карт",
+    "Protos": "прото", "Proto": "прото",
+    "shots": "выстрелов", "shot": "выстрел",
+    "Orbit": "патрулирование", "Alone": "без патрулирования",
+    "Defensive": "оборонные", "Traps": "ловушки",
+    "Life": "Жизнь", "Ice": "Лёд", "Magma": "Магма", "Dark": "Тьма",
+    "Total": "Итого", "Idol": "Идол", "Guardian": "Страж",
+    "Masterpiece": "Шедевр", "Diamonds": "Алмазы",
+    "Attack": "Атака", "Defense": "Оборона", "Unprotected": "без прикрытия",
+    "Depends": "Зависит", "level": "ур.", "Defeat": "поражение",
+    "Victory": "победа", "Resources": "Ресурсы",
+    "Available": "доступно", "Added": "добавлено",
+}
+WORD_RE = re.compile(
+    r"\b(" + "|".join(sorted(WORD_MAP, key=len, reverse=True)) + r")\b", re.I)
+
 TIME_RE = [
+    (re.compile(r"\bthen\s+(\d+)\s*s\b\s*reload", re.I), r"затем перезарядка \1 с"),
+    (re.compile(r"\bHQ level (\d+)", re.I), r"штаб ур. \1"),
+    (re.compile(r"\bRadar level\b", re.I), "уровень радара"),
+    (re.compile(r"\b1 or 2\b"), r"1–2"),
+    (re.compile(r"(\d)\s*min\b"), r"\1 мин"),
     (re.compile(r"(\d)\s*d\b"), r"\1д"),
     (re.compile(r"(\d)\s*h\b"), r"\1ч"),
     (re.compile(r"(\d)\s*m\b"), r"\1м"),
     (re.compile(r"(\d)\s*s\b"), r"\1с"),
 ]
+
+RU_TEXT_GROUPS = {"troops", "proto_troops", "gunboat", "defenses",
+                  "proto_defenses", "heroes"}
 
 
 # ------------------------------------------------------------------ утилиты
@@ -120,6 +386,19 @@ def tr(h):
     for k, v in HDR.items():
         if h.lower() == k.lower():
             return v
+    if h in ALL_NAMES:
+        return ALL_NAMES[h]
+    m = re.match(r"^(Sgt\. Brick|Cpt\. Everspark|Dr\. Kavan|Pvt\. Bullit|Cpt\. Ruddero) Level · (\d+)$", h)
+    if m:
+        return "Ур. героя · " + m.group(2)
+    m = re.match(r"^Armory Level · (\d+)$", h)
+    if m:
+        return "Ур. оружейной · " + m.group(1)
+    m = re.match(r"^(.*?) Level$", h)
+    if m and m.group(1) in SENTENCES:
+        return SENTENCES[m.group(1)] + ", ур."
+    if m and m.group(1) in ALL_NAMES:
+        return ALL_NAMES[m.group(1)] + ", ур."
     return h
 
 
@@ -127,11 +406,53 @@ def tr_val(v):
     s = str(v).strip()
     if s in ("N/A", "n/a", "-", "—", ""):
         return "—"
-    for a, b in VAL_WORDS:
-        s = s.replace(a, b)
+    if s in SENTENCES:
+        return SENTENCES[s]
+    # игровые имена (войска, оборонки...) целиком; если после замены
+    # всё ещё остаются английские слова — откат, чтобы не было смеси
+    named = s
+    for k, ru_rx in RU_NAMES_RX:
+        named = ru_rx.sub(lambda m, r=ALL_NAMES[k]: r, named)
+    if len(re.findall(r"[A-Za-z]{3,}", named)) < 2:
+        s = named
+    for a, b in PHRASES:
+        s = re.sub(r"\b" + re.escape(a) + r"\b", b, s, flags=re.I)
+    # длинное английское предложение не трогаем пословно: смесь языков
+    # хуже, чем цельный английский за аккордеоном
+    looks_sentence = len(s.split()) > 5 and (". " in s or s.endswith("."))
+    if not looks_sentence:
+        def word(m):
+            for form in (m.group(0), m.group(0).title(), m.group(0).lower()):
+                if form in WORD_MAP:
+                    r = WORD_MAP[form]
+                    if m.group(0)[0].isupper() and r[0].islower() and r not in ("кл.", "с", "дн."):
+                        r = r[0].upper() + r[1:]
+                    return r
+            return m.group(0)
+        s = WORD_RE.sub(word, s)
     for rx, rep in TIME_RE:
         s = rx.sub(rep, s)
     return re.sub(r"(?<=\d),(?=\d{3}(\D|$))", "\u2009", s)
+
+
+# ² и ³ для python — «словесные» символы, поэтому \b не подходит:
+# граница должна смотреть только на латинские буквы.
+# Один общий словарь, длинные имена применяются первыми — иначе
+# «Tank» успеет испортить «Tank Tango».
+ALL_NAMES = {k: v[0] for k, v in RU.items()}
+EXTRA_NAMES = {
+    "Heavies": "Горы", "Zookas": "Базуки", "Riflemen": "Стрелки",
+    "Warriors": "Воины", "Tanks": "Танки", "Medics": "Медики",
+    "Grenadiers": "Гренадёры", "Scorchers": "Огневики", "Mechs": "Мехи",
+    "Choppas": "вертолёты", "Laser Rangers": "Лазерщицы",
+    "Cryoneers": "Заморозки", "Bombardiers": "Бомбардиры",
+}
+EXTRA_NAMES.update({en: v[0] for en, v in OPS.items()})
+ALL_NAMES.update(EXTRA_NAMES)
+RU_NAMES_RX = [
+    (k, re.compile(r"(?<![A-Za-z])" + re.escape(k) + r"s?(?![A-Za-z])"))
+    for k in sorted(ALL_NAMES, key=len, reverse=True)
+]
 
 
 def api(params):
@@ -325,10 +646,13 @@ def pick_tables(tables):
     info, levels, extras = {}, None, []
     for t in tables:
         rows = t["rows"]
-        if len(rows) < 2 or len(rows[0]) < 2:
+        if not rows or len(rows[0]) < 2:
             continue
         flat = " ".join(" ".join(r) for r in rows)
         if "•" in flat or "Wiki Navigation" in flat or len(flat) > 12000:
+            continue
+        # таблицы звуков: почти все ячейки — ссылки на ogg-файлы
+        if flat.count("File:") > 3 or flat.count(".ogg") > 3:
             continue
         head0 = " ".join(rows[0]).lower()
         if SKIP_TABLE.search(rows[0][0].strip()) or SKIP_TABLE.search(head0[:40]):
@@ -336,7 +660,8 @@ def pick_tables(tables):
         if len(rows) == 2 and len(rows[0]) <= 12 and not is_level_head(rows[0][0]):
             for k, v in zip(rows[0], rows[1]):
                 k, v = k.strip(), v.strip()
-                if k and v and "+%" not in k and "Apply" not in k and "ApplyReset" not in v:
+                if k and v and "+%" not in k and "Apply" not in k and "ApplyReset" not in v \
+                        and not k.startswith("Figure"):
                     info[tr(k)] = tr_val(v)
             continue
         if is_level_head(rows[0][0]) and levels is None:
@@ -427,10 +752,14 @@ def build_wiki():
             sections = [{"title": SECTION_RU.get(s["title"], s["title"]),
                          "lines": [l for l in s["lines"] if len(l) > 15][:14]}
                         for s in page_sections(h) if s["title"] in SECTION_RU]
+            # английское «Коротко» дублирует русское резюме из ru_text.json
+            if group in RU_TEXT_GROUPS:
+                sections = [s for s in sections if s["title"] != "Коротко"]
             sections = [s for s in sections if s["lines"]]
-            ru = RU.get(title, (title, ""))[0]
+            ru, slang = RU.get(title, (title, ""))
             arr.append({
                 "id": slug(title), "en": title, "ru": ru,
+                "alias": [x.strip() for x in slang.split(",") if x.strip()],
                 "group": group, "groupRu": GROUP_RU.get(group, group),
                 "img": dl_image(main_image(h), slug(title)),
                 "info": info, "levels": levels, "extras": extras, "text": sections,
@@ -454,10 +783,10 @@ def build_ops(tables):
         if "Operation Name" in head:
             for r in rows[2:]:
                 en = r[1].strip()
-                ru, _, note = OPS.get(en, (en, "", ""))
+                ru, chat, note = OPS.get(en, (en, "", ""))
                 ops.append({
                     "n": int(re.sub(r"\D", "", r[0]) or 0), "en": en, "ru": ru,
-                    "note": note,
+                    "chat": chat, "note": note,
                     "intel": {"5": r[2], "10": r[3], "25": r[4], "50": r[5]},
                     "fp": r[6].replace(",", "\u2009"), "bases": r[7],
                 })

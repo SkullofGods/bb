@@ -15,9 +15,12 @@
 ```
 webapp/                 само мини-приложение (это и выкладывается в сеть)
   index.html
+  ping.html             страница без зависимостей: если и она не открывается — дело не в коде
+  debug.html            страница диагностики: открой при проблемах
   css/app.css
   js/                   data.js, ui.js, calc.js, views.js, app.js
-  data/                 все данные приложения (json)
+  js/telegram-web-app.js  SDK Telegram, лежит рядом (не с telegram.org)
+  content/              все данные приложения (json)
     troops.json         войска
     proto_troops.json   прототипы войск
     gunboat.json        канонерка и её способности
@@ -27,19 +30,17 @@ webapp/                 само мини-приложение (это и вык
     buildings.json      постройки
     meta.json           механики, события, справочник
     ops.json            таблица 24 операций
-    bases.json           каталог силовых баз операций (схемы разведки)
-    ru_text.json        русские описания и тактика (правится руками)
+    bases.json          каталог силовых баз операций (схемы разведки)
+    ru_text.json        русские описания, «как играть» и мнения (правится руками)
+    ru_wiki.json        перевод «Как атакировать / Как обороняться» с вики (правится руками)
     guide.json          гайды и FAQ (правится руками)
   img/                  иконки с вики (webp) + img/bases — схемы баз
 
 tools/
   build.py              пересобирает справочник с вики
   build_bases.py        собирает каталог баз из выгрузки чата
-  ru_names.py           словарь русских названий и заголовков таблиц
+  ru_names.py           словарь русских названий, сленга и заголовков таблиц
   cache/                кеш страниц вики (можно удалить, скачается заново)
-
-  debug.html            страница диагностики: открой при проблемах
-  js/telegram-web-app.js  SDK Telegram, лежит рядом (не с telegram.org)
 
 bot.py                  точка входа: поднимает сайт, бот — по желанию
 server.py               сам веб-сервер
@@ -213,12 +214,18 @@ curl -o webapp/js/telegram-web-app.js https://telegram.org/js/telegram-web-app.j
 
 | Что поменять | Где |
 |---|---|
-| Правила опергруппы, гайды, советы | `webapp/content/guide.json` → `articles` |
+| Правила опергруппы, гайды, советы, связки | `webapp/content/guide.json` → `articles` |
 | Базы операций и их схемы | `webapp/content/bases.json` |
 | Частые вопросы | `webapp/content/guide.json` → `faq` |
-| Русские описания юнитов и обороны | `webapp/content/ru_text.json` |
+| Русские описания юнитов и обороны, «как играть» | `webapp/content/ru_text.json` |
+| Мнение о прототипе (блок «Топ-5 прототипов») | `webapp/content/ru_text.json` → поле `op` у записи |
+| Перевод «Как атакировать / Как обороняться» | `webapp/content/ru_wiki.json` |
 | Названия операций | `tools/ru_names.py` → `OPS`, затем `py -3 tools/build.py` |
 | Русские названия юнитов и зданий | `tools/ru_names.py` → `RU`, затем `py -3 tools/build.py` |
+
+Сленг в `ru_names.py` (второе слово в скобках: «тяж», «зука», «дупло»…) на
+страницах не показывается, но **поиск по нему работает** — он попадает в
+поисковый индекс при сборке. Поэтому сленг из чата стоит дописывать туда же.
 
 ### Формат гайда (`guide.json` → `articles`)
 

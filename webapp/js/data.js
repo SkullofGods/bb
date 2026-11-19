@@ -58,15 +58,18 @@
         (cache[k] || []).forEach(function (e) {
           index.push({
             kind: 'entry', group: k, id: e.id,
-            title: e.ru, sub: e.en, extra: e.groupRu || '',
+            title: e.ru, sub: e.en,
+            // сленг не показывается на страницах, но поиск по нему работает
+            extra: ((e.groupRu || '') + ' ' + (e.alias || []).join(' ')).trim(),
             img: e.img, href: '#/p/' + k + '/' + e.id
           });
         });
       });
       (cache.ops ? cache.ops.ops : []).forEach(function (o) {
         index.push({
-          kind: 'op', title: o.ru, sub: 'Операция ' + o.n + ' · ' + o.en,
-          extra: o.note || '', href: '#/op/' + o.n
+          kind: 'op', title: o.ru,
+          sub: 'Операция ' + o.n + ' · ' + o.en + (o.chat ? ' · «' + o.chat + '»' : ''),
+          extra: o.note + ' ' + (o.chat || ''), href: '#/op/' + o.n
         });
       });
       (cache.bases || []).forEach(function (b) {
