@@ -846,6 +846,17 @@
       if (b.t === 'tip') return '<div class="note tip"><b>Совет</b>' + esc(b.v) + '</div>';
       if (b.t === 'warn') return '<div class="note warn"><b>Важно</b>' + esc(b.v) + '</div>';
       if (b.t === 'table') return UI.table(b.h, b.r);
+      if (b.t === 'combo') {
+        var c = b.v;
+        return '<div class="combo-card">' +
+          '<div class="combo-units">' + (c.u || []).map(function (u) {
+            return '<button class="combo-unit" data-href="' + esc(u.h) + '" title="' + esc(u.n) + '">' +
+              '<img loading="lazy" src="' + esc(u.i) + '" alt=""><span>' + esc(u.n) + '</span></button>';
+          }).join('') + '</div>' +
+          '<div class="combo-text"><b>' + esc(c.n) + '</b>' +
+          (c.d ? '<p>' + esc(c.d) + '</p>' : '') + '</div>' +
+        '</div>';
+      }
       if (b.t === 'imgs') return (b.v || []).map(function (im) {
         return '<div class="base-shot" data-lbsrc="' + esc(im.src) + '" data-lbcap="' + esc(im.cap || '') + '">' +
           '<img loading="lazy" src="' + esc(im.src) + '" alt="">' +

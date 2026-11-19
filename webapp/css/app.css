@@ -376,6 +376,29 @@ details.acc .acc-body li::marker { color: var(--gold); }
 }
 .base-shot .bs-hint { margin-left: auto; color: var(--gold); }
 
+/* Карточка связки: портреты юнитов + короткое описание */
+.combo-card {
+  display: flex; gap: 12px; align-items: center;
+  background: var(--surface); border: 1px solid var(--line);
+  border-radius: 14px; padding: 11px 12px; margin-bottom: 10px;
+}
+.combo-units { display: flex; gap: 7px; flex-shrink: 0; }
+.combo-unit {
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  background: none; border: 0; padding: 0; cursor: pointer; min-width: 0;
+}
+.combo-unit img {
+  width: 46px; height: 46px; border-radius: 11px; object-fit: cover;
+  background: var(--surface-2); border: 1px solid var(--line); display: block;
+}
+.combo-unit span {
+  font-size: 9.5px; color: var(--muted); max-width: 52px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.combo-text { min-width: 0; }
+.combo-text b { display: block; font-size: 13.5px; line-height: 1.3; }
+.combo-text p { margin: 3px 0 0; font-size: 12px; color: var(--muted); line-height: 1.45; }
+
 code {
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .92em;
   background: var(--surface-2); padding: 1px 5px; border-radius: 5px;
