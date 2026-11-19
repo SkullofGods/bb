@@ -477,3 +477,5 @@ a.link { color: var(--gold); text-decoration: none; font-weight: 600; }
 }
 :root[data-theme="light"] .hero { box-shadow: 0 6px 18px rgba(10, 40, 55, .06); }
 :root[data-theme="light"] .seg button.on { color: #2a1c00; }
+
+/* Схемы расстановок в гайдах: сетка emoji-клеток */

@@ -30,7 +30,7 @@
           { icon: '🪖', title: 'Войска', sub: '13 юнитов по уровням', href: '#/cat/troops', accent: 'teal' },
           { icon: '🧪', title: 'Прототипы', sub: '20 прото-войск', href: '#/cat/proto_troops', accent: 'purple' },
           { icon: '🛡️', title: 'Оборона', sub: 'Что и в каком порядке сносить', href: '#/cat/defenses', accent: 'red' },
-          { icon: '🗿', title: 'Статуи', sub: 'Бонусы идолов и шедевров', href: '#/statues', accent: 'gold' }
+          { icon: '🗺️', title: 'Связки и схемы', sub: 'Солянки, оборона базы', href: '#/guide/combos', accent: 'teal' }
         ]) +
 
         UI.secTitle('Тяжёлые операции', { href: '#/ops', title: 'все' }) +
@@ -846,6 +846,11 @@
       if (b.t === 'tip') return '<div class="note tip"><b>Совет</b>' + esc(b.v) + '</div>';
       if (b.t === 'warn') return '<div class="note warn"><b>Важно</b>' + esc(b.v) + '</div>';
       if (b.t === 'table') return UI.table(b.h, b.r);
+      if (b.t === 'imgs') return (b.v || []).map(function (im) {
+        return '<div class="base-shot" data-lbsrc="' + esc(im.src) + '" data-lbcap="' + esc(im.cap || '') + '">' +
+          '<img loading="lazy" src="' + esc(im.src) + '" alt="">' +
+          '<div class="bs-meta">' + esc(im.cap || '') + ' <span class="bs-hint">нажми, чтобы открыть</span></div></div>';
+      }).join('');
       if (b.t === 'links') return b.v.map(function (l) {
         return UI.rowItem({ title: l.t, sub: l.s, href: l.h });
       }).join('');
@@ -861,7 +866,12 @@
         title: a.title,
         html: '<div class="hero"><span class="hero-badge">' + esc((a.tags || [])[0] || 'гайд') + '</span>' +
           '<h1>' + esc(a.icon + ' ' + a.title) + '</h1><p>' + esc(a.sub || '') + '</p></div>' +
-          '<div class="article">' + renderBlocks(a.blocks) + '</div>'
+          '<div class="article">' + renderBlocks(a.blocks) + '</div>',
+        after: function (root) {
+          root.querySelectorAll('[data-lbsrc]').forEach(function (el) {
+            el.onclick = function () { UI.lightbox(el.dataset.lbsrc, el.dataset.lbcap); };
+          });
+        }
       };
     });
   }
@@ -889,6 +899,8 @@
 
         UI.secTitle('Справочники') +
         UI.tiles([
+          { icon: '🪖', title: 'Связки и солянки', sub: 'Чем ходить и что сносить', href: '#/guide/combos', accent: 'teal' },
+          { icon: '🛡️', title: 'Оборона базы', sub: 'Схемы расстановок', href: '#/guide/base-defense', accent: 'red' },
           { icon: '🗿', title: 'Статуи', sub: 'Бонусы и классы', href: '#/statues', accent: 'purple' },
           { icon: '🎖️', title: 'Герои', sub: '5 героев', href: '#/cat/heroes', accent: 'gold' },
           { icon: '🏗️', title: 'Постройки', sub: 'Экономика и штаб', href: '#/cat/buildings', accent: 'teal' },
