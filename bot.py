@@ -60,7 +60,7 @@ def _build_bot():
                                   web_app=WebAppInfo(url=WEBAPP_URL))]
         ])
 
-    @dp.message(Command("start", "bb", "справочник"), F.chat.type == "private")
+    @dp.message(Command("start", "bb", "справочник", "info", "wiki"), F.chat.type == "private")
     async def start_private(message: Message) -> None:
         await message.answer(
             "Справочник опергруппы по Boom Beach: операции и их базы, войска, "
@@ -81,7 +81,7 @@ def _build_bot():
             disable_web_page_preview=True,
         )
 
-    @dp.message(Command("start", "bb", "справочник"))
+    @dp.message(Command("start", "bb", "справочник", "info", "wiki"))
     async def start_group(message: Message) -> None:
         if not APP_LINK:
             await message.answer(
