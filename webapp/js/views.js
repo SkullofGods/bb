@@ -210,6 +210,12 @@
           '<span class="hero-badge">схемы</span><h1>Силовые базы</h1>' +
           '<p>' + list.length + ' баз со скриншотами разведки. Нажми на базу, чтобы посмотреть схему целиком.</p>' +
         '</div>' +
+        '<div class="card" style="margin-bottom:12px"><div class="tiny">' +
+          'Готовых расстановок в интернете не существует: база собирается заново при каждом запуске операции, ' +
+          'меняются и уровни обороны. Тип базы (например «Лабиринт» или «Мантикора») узнаётся по общему рисунку — ' +
+          'единственный источник схем это разведка нашего чата. Скрин разведки → <code>webapp/img/bases/</code> + ' +
+          'строка в <code>webapp/content/bases.json</code>, и база появится в каталоге и на странице своей операции.' +
+        '</div></div>' +
         '<div class="searchbar" style="margin-bottom:10px">' +
           '<svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>' +
           '<input id="b-q" placeholder="Название базы">' +
@@ -849,12 +855,12 @@
       if (b.t === 'combo') {
         var c = b.v;
         return '<div class="combo-card">' +
+          '<b class="combo-name">' + esc(c.n) + '</b>' +
           '<div class="combo-units">' + (c.u || []).map(function (u) {
             return '<button class="combo-unit" data-href="' + esc(u.h) + '" title="' + esc(u.n) + '">' +
               '<img loading="lazy" src="' + esc(u.i) + '" alt=""><span>' + esc(u.n) + '</span></button>';
           }).join('') + '</div>' +
-          '<div class="combo-text"><b>' + esc(c.n) + '</b>' +
-          (c.d ? '<p>' + esc(c.d) + '</p>' : '') + '</div>' +
+          (c.d ? '<p class="combo-desc">' + esc(c.d) + '</p>' : '') +
         '</div>';
       }
       if (b.t === 'imgs') return (b.v || []).map(function (im) {
