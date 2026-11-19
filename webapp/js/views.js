@@ -15,7 +15,7 @@
         '<div class="hero">' +
           '<span class="hero-badge">Boom Beach</span>' +
           '<h1>Справочник опергруппы</h1>' +
-          '<p>Операции, войска, прототипы, оборона и калькулятор канонерки — всё в одном месте.</p>' +
+          '<p>Операции, войска, прототипы, оборона и расчёт энергии канонерки.</p>' +
         '</div>' +
 
         '<div class="searchbar" data-href="#/search">' +
@@ -25,12 +25,12 @@
 
         UI.secTitle('Разделы') +
         UI.tiles([
-          { icon: '⚔️', title: 'Операции', sub: '24 операции, интел, очки силы', href: '#/ops', accent: 'gold' },
-          { icon: '🚤', title: 'Калькулятор', sub: 'Энергия канонерки и снос целей', href: '#/calc', accent: 'blue' },
-          { icon: '🪖', title: 'Войска', sub: '13 юнитов по уровням', href: '#/cat/troops', accent: 'teal' },
-          { icon: '🧪', title: 'Прототипы', sub: '20 прото-войск', href: '#/cat/proto_troops', accent: 'purple' },
-          { icon: '🛡️', title: 'Оборона', sub: 'Что и в каком порядке сносить', href: '#/cat/defenses', accent: 'red' },
-          { icon: '🗺️', title: 'Связки и схемы', sub: 'Солянки, оборона базы', href: '#/guide/combos', accent: 'teal' }
+          { img: 'img/operation.webp', title: 'Операции', sub: '24 операции, интел, очки силы', href: '#/ops' },
+          { img: 'img/gunboat.webp', title: 'Калькулятор', sub: 'Энергия канонерки и снос целей', href: '#/calc' },
+          { img: 'img/tank.webp', title: 'Войска', sub: '13 юнитов по уровням', href: '#/cat/troops' },
+          { img: 'img/dr-vitamin.webp', title: 'Прототипы', sub: '20 прото-войск', href: '#/cat/proto_troops' },
+          { img: 'img/cannon.webp', title: 'Оборона', sub: 'Что и в каком порядке сносить', href: '#/cat/defenses' },
+          { img: 'img/warrior.webp', title: 'Связки и схемы', sub: 'Солянки, оборона базы', href: '#/guide/combos' }
         ]) +
 
         UI.secTitle('Тяжёлые операции', { href: '#/ops', title: 'все' }) +
@@ -44,7 +44,7 @@
 
         UI.secTitle('Гайды', { href: '#/more', title: 'ещё' }) +
         guide.articles.slice(0, 4).map(function (a) {
-          return UI.rowItem({ title: a.icon + '  ' + a.title, sub: a.sub, href: '#/guide/' + a.id });
+          return UI.rowItem({ title: a.title, sub: a.sub, href: '#/guide/' + a.id });
         }).join('') +
 
         '<div class="src tiny">Данные с англоязычной вики Boom Beach · схемы из чата опергруппы</div>';
@@ -92,9 +92,9 @@
         var art = res[1].articles.filter(function (a) { return a.id === wantId; })[0];
         body = '<div class="article" style="margin-top:12px">' + renderBlocks(art.blocks) + '</div>' +
           (tab === 'bases'
-            ? UI.rowItem({ title: '🏭 Каталог баз', sub: 'Схемы разведки из чата', href: '#/bases' })
+            ? UI.rowItem({ title: 'Каталог баз', sub: 'Схемы разведки из чата', href: '#/bases' })
             : '') +
-          UI.rowItem({ title: '📋 Все гайды', sub: 'Связки войск, энергия, ошибки', href: '#/more' });
+          UI.rowItem({ title: 'Все гайды', sub: 'Связки войск, энергия, ошибки', href: '#/more' });
       }
 
       return {
@@ -175,12 +175,12 @@
           'поэтому список собирается по скриншотам разведки.</p>' +
           '<div class="tiny">Как добавить: скрин разведки базы → <code>webapp/img/bases/</code>, ' +
           'строка в <code>webapp/content/bases.json</code> с номером операции ' + o.n + '.</div></div>' +
-          UI.rowItem({ title: '🏭 Все известные базы', sub: 'Каталог со схемами', href: '#/bases' });
+          UI.rowItem({ title: 'Все известные базы', sub: 'Каталог со схемами', href: '#/bases' });
       }
 
       html += UI.secTitle('Пригодится') +
-        UI.rowItem({ title: '🎯 Порядок атак на базе', sub: 'Что сносить первым и чем', href: '#/ops?tab=order' }) +
-        UI.rowItem({ title: '🏭 Про силовые базы', sub: 'Почему они каждый раз разные', href: '#/ops?tab=bases' }) +
+        UI.rowItem({ title: 'Порядок атак на базе', sub: 'Что сносить первым и чем', href: '#/ops?tab=order' }) +
+        UI.rowItem({ title: 'Про силовые базы', sub: 'Почему они каждый раз разные', href: '#/ops?tab=bases' }) +
         '<div class="tiny" style="margin-top:14px">Операция длится 23 ч 55 мин. У каждого игрока одна атака. ' +
         'Урон по базам сохраняется между атаками.</div>';
 
@@ -278,7 +278,7 @@
           '» и впиши номер операции в <code>"ops"</code> — база появится на её странице.</div></div>';
       }
 
-      html += UI.rowItem({ title: '🏭 Все базы', sub: 'Каталог схем', href: '#/bases' });
+      html += UI.rowItem({ title: 'Все базы', sub: 'Каталог схем', href: '#/bases' });
 
       return {
         title: b.name, html: html,
@@ -478,11 +478,11 @@
   function relatedLinks(group, e) {
     if (group === 'gunboat' && e.id !== 'gunboat') {
       return UI.secTitle('Пригодится') +
-        UI.rowItem({ title: '🚤 Калькулятор канонерки', sub: 'Посчитать энергию и снос цели', href: '#/calc' });
+        UI.rowItem({ title: 'Калькулятор канонерки', sub: 'Посчитать энергию и снос цели', href: '#/calc' });
     }
     if (group === 'defenses' || group === 'proto_defenses') {
       return UI.secTitle('Пригодится') +
-        UI.rowItem({ title: '🚤 Сколько энергии на снос', sub: 'Открыть калькулятор с этой целью', href: '#/calc?target=' + group + ':' + e.id });
+        UI.rowItem({ title: 'Сколько энергии на снос', sub: 'Открыть калькулятор с этой целью', href: '#/calc?target=' + group + ':' + e.id });
     }
     return '';
   }
@@ -497,10 +497,10 @@
       var html =
         '<div class="hero" style="background:linear-gradient(135deg,var(--blue-soft),var(--teal-soft))">' +
           '<span class="hero-badge">Канонерка</span>' +
-          '<h1>Энергия решает</h1>' +
+          '<h1>Энергия канонерки</h1>' +
           '<p>Каждое следующее применение одной способности дороже предыдущего. Разрушенное здание возвращает 3 энергии.</p>' +
         '</div>' +
-        UI.rowItem({ title: '🧮 Калькулятор канонерки', sub: 'Энергия, план атаки, снос цели', href: '#/calc' }) +
+        UI.rowItem({ title: 'Калькулятор канонерки', sub: 'Энергия, план атаки, снос цели', href: '#/calc' }) +
         UI.secTitle('Способности') +
         '<div class="ab-list">' + abil.map(function (a) {
           var c = CALC.abilityCost(a);
@@ -553,7 +553,7 @@
         '<div class="hero" style="background:linear-gradient(135deg,var(--blue-soft),transparent)">' +
           '<span class="hero-badge">Калькулятор</span>' +
           '<h1>Канонерка</h1>' +
-          '<p>Сколько энергии у тебя есть, во что она превращается и хватит ли её на цель.</p>' +
+          '<p>Запас энергии, стоимость способностей и расчёт сноса цели.</p>' +
         '</div>' +
 
         '<div class="card">' +
@@ -595,7 +595,7 @@
         '</div>' +
 
         '<div class="note tip" style="margin-top:12px"><b>Как пользоваться</b>' +
-        'Бонусы — это суммарные проценты от статуй, гравировок и эффектов. Если бонусов нет, оставь нули: расчёт будет по «голым» цифрам вики.</div>' +
+        'Бонусы — это суммарные проценты от статуй, гравировок и эффектов. Если бонусов нет, оставь нули — расчёт пойдёт по базовым цифрам вики.</div>' +
 
         '<div class="src"><button class="chip" id="c-reset">Сбросить настройки</button></div>';
 
@@ -828,8 +828,8 @@
         '</ul></div>' +
         (st.extras || []).filter(function (t) { return t.headers.join(' ').indexOf('Класс статуи') >= 0; })
           .map(function (t) { return UI.secTitle('Создание и разбор') + UI.table(t.headers, t.rows); }).join('') +
-        UI.rowItem({ title: '🗿 Полная страница вики', sub: st.en, img: st.img, href: '#/p/meta/statue' }) +
-        (ps ? UI.rowItem({ title: '💎 Камни силы', sub: ps.en, img: ps.img, href: '#/p/meta/power-stone' }) : '');
+        UI.rowItem({ title: 'Полная страница вики', sub: st.en, img: st.img, href: '#/p/meta/statue' }) +
+        (ps ? UI.rowItem({ title: 'Камни силы', sub: ps.en, img: ps.img, href: '#/p/meta/power-stone' }) : '');
 
       return { title: 'Статуи', html: html };
     });
@@ -876,7 +876,7 @@
       return {
         title: a.title,
         html: '<div class="hero"><span class="hero-badge">' + esc((a.tags || [])[0] || 'гайд') + '</span>' +
-          '<h1>' + esc(a.icon + ' ' + a.title) + '</h1><p>' + esc(a.sub || '') + '</p></div>' +
+          '<h1>' + esc(a.title) + '</h1><p>' + esc(a.sub || '') + '</p></div>' +
           '<div class="article">' + renderBlocks(a.blocks) + '</div>',
         after: function (root) {
           root.querySelectorAll('[data-lbsrc]').forEach(function (el) {
@@ -905,21 +905,21 @@
       var html =
         UI.secTitle('Гайды') +
         g.articles.map(function (a) {
-          return UI.rowItem({ title: a.icon + '  ' + a.title, sub: a.sub, href: '#/guide/' + a.id });
+          return UI.rowItem({ title: a.title, sub: a.sub, href: '#/guide/' + a.id });
         }).join('') +
 
         UI.secTitle('Справочники') +
         UI.tiles([
-          { icon: '🪖', title: 'Связки и солянки', sub: 'Чем ходить и что сносить', href: '#/guide/combos', accent: 'teal' },
-          { icon: '🛡️', title: 'Оборона базы', sub: 'Схемы расстановок', href: '#/guide/base-defense', accent: 'red' },
-          { icon: '🗿', title: 'Статуи', sub: 'Бонусы и классы', href: '#/statues', accent: 'purple' },
-          { icon: '🎖️', title: 'Герои', sub: '5 героев', href: '#/cat/heroes', accent: 'gold' },
-          { icon: '🏗️', title: 'Постройки', sub: 'Экономика и штаб', href: '#/cat/buildings', accent: 'teal' },
-          { icon: '⚡', title: 'Прото-оборона', sub: '12 прототипов', href: '#/cat/proto_defenses', accent: 'blue' },
-          { icon: '🏭', title: 'Базы операций', sub: 'Схемы разведки', href: '#/bases', accent: 'gold' },
-          { icon: '❓', title: 'FAQ', sub: 'Частые вопросы', href: '#/faq', accent: 'teal' },
-          { icon: '📖', title: 'Механики', sub: 'Интел, очки силы, подбор', href: '#/p/meta/intel', accent: 'red' },
-          { icon: '📚', title: 'Вся вики', sub: 'Механики и события', href: '#/cat/meta', accent: 'blue' }
+          { img: 'img/warrior.webp', title: 'Связки и солянки', sub: 'Чем ходить и что сносить', href: '#/guide/combos' },
+          { img: 'img/headquarters.webp', title: 'Оборона базы', sub: 'Схемы расстановок', href: '#/guide/base-defense' },
+          { img: 'img/statue.webp', title: 'Статуи', sub: 'Бонусы и классы', href: '#/statues' },
+          { img: 'img/sgt-brick.webp', title: 'Герои', sub: '5 героев', href: '#/cat/heroes' },
+          { img: 'img/armory.webp', title: 'Постройки', sub: 'Экономика и штаб', href: '#/cat/buildings' },
+          { img: 'img/shock-blaster.webp', title: 'Прото-оборона', sub: '12 прототипов', href: '#/cat/proto_defenses' },
+          { img: 'img/boss-base.webp', title: 'Базы операций', sub: 'Схемы разведки', href: '#/bases' },
+          { icon: '❓', title: 'FAQ', sub: 'Частые вопросы', href: '#/faq' },
+          { img: 'img/intel.webp', title: 'Механики', sub: 'Интел, очки силы, подбор', href: '#/p/meta/intel' },
+          { img: 'img/player-guide.webp', title: 'Вся вики', sub: 'Механики и события', href: '#/cat/meta' }
         ]) +
 
         UI.rowItem({ title: '🩺 Диагностика', sub: 'Если приложение открылось криво', href: 'debug.html' }) +
@@ -959,7 +959,7 @@
             }
             if (!r.length) { box.innerHTML = '<div class="empty"><i>🤷</i>Ничего не нашлось</div>'; return; }
             box.innerHTML = r.map(function (i) {
-              var tag = i.kind === 'op' ? '⚔️ ' : i.kind === 'article' ? '📋 ' : i.kind === 'base' ? '🏭 ' : '';
+              var tag = '';
               return UI.rowItem({ title: tag + i.title, sub: i.sub, img: i.img, href: i.href });
             }).join('');
           }

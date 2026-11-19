@@ -9,11 +9,11 @@
   var tabbar = document.getElementById('tabbar');
 
   var TABS = [
-    { id: 'home', icon: '🏠', title: 'Главная', href: '#/' },
-    { id: 'ops', icon: '⚔️', title: 'Операции', href: '#/ops' },
-    { id: 'cat', icon: '🪖', title: 'Каталог', href: '#/cat/troops' },
-    { id: 'gb', icon: '🚤', title: 'Канонерка', href: '#/gb' },
-    { id: 'more', icon: '☰', title: 'Ещё', href: '#/more' }
+    { id: 'home', icon: '<svg viewBox="0 0 24 24"><path d="M4 11.5L12 4l8 7.5"/><path d="M6.5 10.5V20h11v-9.5"/></svg>', title: 'Главная', href: '#/' },
+    { id: 'ops', icon: '<svg viewBox="0 0 24 24"><path d="M5 4l11.5 11.5"/><path d="M19 4L7.5 15.5"/><path d="M16.5 15.5L19.5 18.5"/><path d="M7.5 15.5L4.5 18.5"/><path d="M18 19.5l1.5-1.5"/><path d="M6 19.5L4.5 18"/></svg>', title: 'Операции', href: '#/ops' },
+    { id: 'cat', icon: '<svg viewBox="0 0 24 24"><rect x="4" y="4" width="7" height="7" rx="1.8"/><rect x="13" y="4" width="7" height="7" rx="1.8"/><rect x="4" y="13" width="7" height="7" rx="1.8"/><rect x="13" y="13" width="7" height="7" rx="1.8"/></svg>', title: 'Каталог', href: '#/cat/troops' },
+    { id: 'gb', icon: '<svg viewBox="0 0 24 24"><path d="M3.5 14.5h17l-2.5 4.5H6z"/><path d="M12 14.5V5"/><path d="M12 6.5l5 4.5h-5"/></svg>', title: 'Канонерка', href: '#/gb' },
+    { id: 'more', icon: '<svg viewBox="0 0 24 24"><path d="M4 7h16"/><path d="M4 12h16"/><path d="M4 17h16"/></svg>', title: 'Ещё', href: '#/more' }
   ];
 
   var ROOT_HASHES = TABS.map(function (t) { return t.href; });
@@ -23,7 +23,7 @@
   function renderTabs(active) {
     tabbar.innerHTML = TABS.map(function (t) {
       return '<button class="tab' + (t.id === active ? ' on' : '') + '" data-tab="' + t.id + '">' +
-        '<i>' + t.icon + '</i>' + t.title + '</button>';
+        '<i>' + t.icon + '</i><span>' + t.title + '</span></button>';
     }).join('');
     tabbar.querySelectorAll('[data-tab]').forEach(function (b) {
       b.onclick = function () {
@@ -161,7 +161,7 @@
       (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
     document.documentElement.dataset.theme = scheme === 'light' ? 'light' : 'dark';
     var meta = document.querySelector('meta[name=theme-color]');
-    if (meta) meta.content = scheme === 'light' ? '#eef4f7' : '#0b1f2a';
+    if (meta) meta.content = scheme === 'light' ? '#eef1f2' : '#101418';
   }
 
   if (tg) {
@@ -169,7 +169,7 @@
       tg.ready();
       tg.expand();
       if (tg.disableVerticalSwipes) tg.disableVerticalSwipes();
-      if (tg.setHeaderColor) tg.setHeaderColor(tg.colorScheme === 'light' ? '#eef4f7' : '#0b1f2a');
+      if (tg.setHeaderColor) tg.setHeaderColor(tg.colorScheme === 'light' ? '#eef1f2' : '#101418');
       tg.onEvent('themeChanged', applyTheme);
       tg.onEvent('backButtonClicked', back);
     } catch (e) { /* открыто вне Telegram */ }

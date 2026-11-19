@@ -16,9 +16,12 @@
 
   function tiles(items) {
     return '<div class="grid g2">' + items.map(function (i) {
-      return '<button class="tile accent-' + (i.accent || 'teal') + '" data-href="' + esc(i.href) + '">' +
-        '<i>' + i.icon + '</i><b>' + esc(i.title) + '</b>' +
-        (i.sub ? '<span>' + esc(i.sub) + '</span>' : '') + '</button>';
+      var ico = i.img
+        ? '<span class="t-ico"><img src="' + esc(i.img) + '" alt="" loading="lazy"></span>'
+        : (i.icon ? '<span class="t-ico">' + i.icon + '</span>' : '');
+      return '<button class="tile" data-href="' + esc(i.href) + '">' +
+        ico + '<span class="t-body"><b>' + esc(i.title) + '</b>' +
+        (i.sub ? '<span>' + esc(i.sub) + '</span>' : '') + '</span></button>';
     }).join('') + '</div>';
   }
 
