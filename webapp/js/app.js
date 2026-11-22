@@ -66,6 +66,7 @@
       case 'faq': return { tab: 'more', run: VIEWS.faqView };
       case 'more': return { tab: 'more', run: VIEWS.more };
       case 'ai': return { tab: null, run: VIEWS.ai };
+      case 'updates': return { tab: 'more', run: VIEWS.updates };
       case 'search': return { tab: null, run: function () { return VIEWS.searchView(q); } };
       default: return { tab: 'home', run: VIEWS.home };
     }

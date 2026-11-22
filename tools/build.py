@@ -798,6 +798,171 @@ def build_ops(tables):
     print(f"операции: {len(ops)} -> ops.json")
 
 
+# ------------------------------------------------------------------- обновления игры
+# История обновлений живёт на вики одной большой страницей свёрнутых таблиц:
+# свежайший патч сверху. Тянем верхние, переводим онлайн-переводчиком
+# (Google gtx, фолбэк MyMemory), названия юнитов подставляем свои до перевода,
+# чтобы «Rifleman» стал «Стрелком», а не «стрелком-винтовочником».
+
+UPDATES_PAGE = "Version History"
+UPDATES_KEEP = 8
+MONTHS = {"January": "января", "February": "февраля", "March": "марта", "April": "апреля",
+          "May": "мая", "June": "июня", "July": "июля", "August": "августа",
+          "September": "сентября", "October": "октября", "November": "ноября", "December": "декабря"}
+MONTHS_NOM = {"January": "январь", "February": "февраль", "March": "март", "April": "апрель",
+              "May": "май", "June": "июнь", "July": "июль", "August": "август",
+              "September": "сентябрь", "October": "октябрь", "November": "ноябрь", "December": "декабрь"}
+
+
+def mt(text):
+    """Онлайн-перевод EN->RU. None — если оба переводчика не ответили."""
+    text = text.strip()
+    if not text:
+        return ""
+    try:
+        q = urllib.parse.quote(text)
+        url = ("https://translate.googleapis.com/translate_a/single?client=gtx"
+               "&sl=en&tl=ru&dt=t&q=" + q)
+        req = urllib.request.Request(url, headers=UA)
+        d = json.load(urllib.request.urlopen(req, timeout=25))
+        out = "".join(s[0] for s in d[0] if s and s[0]).strip()
+        if out:
+            return out
+    except Exception:
+        pass
+    try:
+        q = urllib.parse.quote(text[:450])
+        url = "https://api.mymemory.translated.net/get?q=" + q + "&langpair=en|ru"
+        req = urllib.request.Request(url, headers=UA)
+        d = json.load(urllib.request.urlopen(req, timeout=25))
+        out = (d.get("responseData") or {}).get("translatedText", "")
+        if out and "MYMEMORY WARNING" not in out:
+            return out.strip()
+    except Exception:
+        pass
+    return None
+
+
+def _names_ru(text):
+    """Английские названия из наших словарей -> русские, до машинного перевода."""
+    for k, rx in RU_NAMES_RX:
+        text = rx.sub(lambda m, r=ALL_NAMES[k]: r, text)
+    return text
+
+
+def _wiki_line(s):
+    """Вики-разметку в текст: [[A|B]]->B, [[A]]->A, {{Res|RES=X}}->X, шаблоны, теги и кавычки прочь."""
+    s = re.sub(r"\[\[[^\]|]+\|([^\]]+)\]\]", r"\1", s)
+    s = re.sub(r"\[\[([^\]]+)\]\]", r"\1", s)
+    s = re.sub(r"\{\{Res\|RES=([^}|]+)[^}]*\}\}", r"\1", s)
+    s = re.sub(r"\{\{[^}]*\}\}", "", s)
+    s = re.sub(r"<ref[^>]*>.*?</ref>", "", s)
+    s = re.sub(r"<[^>]+>", "", s)
+    s = s.replace("'''", "").replace("''", "")
+    return re.sub(r"\s+", " ", s).strip(" :")
+
+
+def _ru_date(s):
+    """«April 22, 2026» и «22nd April, 2026» -> «22 апреля 2026».
+    «??? November, 2026» (день ещё не объявлен) -> «ноябрь 2026»."""
+    m = re.search(r"(\d{1,2})\w*\s+(" + "|".join(MONTHS) + r")\w*,?\s+(20\d\d)", s)
+    if m:
+        return f"{m.group(1)} {MONTHS[m.group(2)]} {m.group(3)}"
+    m = re.search(r"(" + "|".join(MONTHS) + r")\w*,?\s+(\d{1,2}),?\s+(20\d\d)", s)
+    if m:
+        return f"{m.group(2)} {MONTHS[m.group(1)]} {m.group(3)}"
+    m = re.search(r"(" + "|".join(MONTHS) + r")\w*,?\s+(20\d\d)", s)
+    if m:
+        return MONTHS_NOM[m.group(1)] + " " + m.group(2)
+    return s.strip()
+
+
+def build_updates():
+    cachefile = os.path.join(CACHE, "Version_History_wt.json")
+    os.makedirs(CACHE, exist_ok=True)
+    if os.path.exists(cachefile) and os.path.getsize(cachefile) > 500:
+        wt = open(cachefile, encoding="utf-8").read()
+    else:
+        d = api({"action": "parse", "page": UPDATES_PAGE, "prop": "wikitext",
+                 "format": "json", "formatversion": "2"})
+        wt = d["parse"]["wikitext"]
+        open(cachefile, "w", encoding="utf-8").write(wt)
+
+    updates = []
+    for tb in re.split(r'\{\| class="wikitable', wt)[1:UPDATES_KEEP * 2 + 4]:
+        lines = tb.split("\n")
+        # строка заголовка идёт после атрибутов таблицы: «! scope="col" | Название (дата)»
+        head = ""
+        for ln in lines[:6]:
+            m = re.match(r'\s*!(?:\s*scope="col"\s*)?\|\s*(.+)$', ln)
+            if m:
+                head = m.group(1)
+                break
+        if not head:
+            continue
+        head = _wiki_line(head)
+        dm = re.search(r"\(([^()]*?20\d\d[^()]*?)\)\s*$", head)
+        date_en = dm.group(1) if dm else ""
+        title = _wiki_line(head[:dm.start()]) if dm else head
+        if not title:
+            continue
+        # тело таблицы — после строки с «|-»
+        try:
+            body = tb.split("\n|-", 1)[1]
+        except IndexError:
+            continue
+        body = body.rsplit("|}", 1)[0]
+
+        sections, cur = [], {"h": "", "v": []}
+        for raw in body.split("\n"):
+            s = raw.strip()
+            if s.startswith("==="):
+                if cur["v"] or cur["h"]:
+                    sections.append(cur)
+                h = _wiki_line(s.strip("= "))
+                cur = {"h": h, "v": []}
+            elif s.startswith("*"):
+                line = ("— " if s.startswith("**") else "") + _wiki_line(s.lstrip("*"))
+                if line and len(cur["v"]) < 30:
+                    cur["v"].append(line)
+            elif s and not s.startswith(("{", "|", "!")) and len(s) > 25:
+                line = _wiki_line(s)
+                if line:
+                    cur["v"].append(line)
+        if cur["v"] or cur["h"]:
+            sections.append(cur)
+        sections = [x for x in sections if x["v"]]
+        if not sections:
+            continue
+
+        # перевод
+        t_ru = mt(_names_ru(title)) or title
+        if t_ru.lower().rstrip(". ") in ("обновлять", "обновление"):
+            t_ru = "Обновление игры"
+        upd = {"t": t_ru, "d": _ru_date(date_en), "src": UPDATES_PAGE.replace(" ", "_"),
+               "s": []}
+        for sec in sections:
+            h_ru = mt(_names_ru(sec["h"])) if sec["h"] else ""
+            v_ru = []
+            for line in sec["v"]:
+                r = mt(_names_ru(line))
+                v_ru.append(r if r else line + " (англ.)")
+                time.sleep(0.12)
+            upd["s"].append({"h": h_ru, "v": v_ru})
+        updates.append(upd)
+        print(f"  обновление: {t_ru[:60]} ({upd['d']}) — {sum(len(x['v']) for x in upd['s'])} строк")
+        if len(updates) >= UPDATES_KEEP:
+            break
+
+    out = os.path.join(DATA, "updates.json")
+    json.dump(updates, open(out, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
+    print(f"обновления: {len(updates)} -> {os.path.basename(out)}")
+
+
 if __name__ == "__main__":
-    build_wiki()
-    print("Готово. Каталог баз операций собирается отдельно: py -3 tools/build_bases.py")
+    if len(sys.argv) > 1 and sys.argv[1] == "updates":
+        build_updates()
+    else:
+        build_wiki()
+        build_updates()
+        print("Готово. Каталог баз операций собирается отдельно: py -3 tools/build_bases.py")

@@ -934,6 +934,8 @@
           { img: 'img/player-guide.webp', title: 'Вся вики', sub: 'Механики и события', href: '#/cat/meta' }
         ]) +
 
+        UI.rowItem({ title: '🗞 Обновления игры', sub: 'Последние патчи с вики (автоперевод)', href: '#/updates' }) +
+
         UI.rowItem({ title: '🩺 Диагностика', sub: 'Если приложение открылось криво', href: 'debug.html' }) +
 
         '<div class="card" style="margin-top:16px">' +
@@ -1050,6 +1052,34 @@
     });
   }
 
+  /* ======================= ОБНОВЛЕНИЯ ИГРЫ ======================= */
+
+  function updatesView() {
+    return DB.load('updates').then(function (list) {
+      if (!list || !list.length) {
+        return { title: 'Обновления', html: '<div class="empty"><i>🗞️</i>Список обновлений пока не собран</div>' };
+      }
+      var html =
+        '<div class="hero"><span class="hero-badge">патчи</span>' +
+          '<h1>Обновления игры</h1>' +
+          '<p>Последние патчи с англоязычной вики, перевод автоматический. Собирается запуском ' +
+          '<code>py tools/build.py updates</code>.</p>' +
+        '</div>' +
+        list.map(function (u, i) {
+          var body = u.s.map(function (sec) {
+            return (sec.h ? '<div class="card-h" style="margin-top:10px">' + esc(sec.h) + '</div>' : '') +
+              '<ul class="use">' + sec.v.map(function (l) {
+                return '<li>' + esc(l) + '</li>';
+              }).join('') + '</ul>';
+          }).join('');
+          var title = u.t + ' · ' + u.d;
+          return UI.accordion(title, body, i === 0);
+        }).join('') +
+        '<div class="src tiny">Источник: полная история на вики · обновляется при пересборке справочника</div>';
+      return { title: 'Обновления', html: html };
+    });
+  }
+
   /* ======================= ИИ-ПОМОЩНИК ======================= */
 
   var AI_STARTERS = [
@@ -1147,6 +1177,6 @@
     catalog: catalog, detail: detail,
     gunboat: gunboat, calcView: calcView, statues: statues,
     guideArticle: guideArticle, faqView: faqView,
-    more: more, searchView: searchView, ai: aiView
+    more: more, searchView: searchView, ai: aiView, updates: updatesView
   };
 })(window);

@@ -14,6 +14,7 @@ SIGTERM. Локально порт можно задать аргументом:
 import http.server
 import json
 import os
+import re
 import signal
 import socket
 import sys
@@ -44,6 +45,92 @@ AI_SYSTEM = (
 )
 
 _groq_model = {"picked": ""}
+
+# --- база знаний: ИИ получает выдержки из нашего же справочника, чтобы не фантазировал ---
+KB = {"chunks": [], "ready": False}
+
+
+def _c(*name):
+    path = os.path.join(ROOT, "content", *name)
+    try:
+        return json.load(open(path, encoding="utf-8"))
+    except OSError:
+        return None
+
+
+def _build_kb():
+    if KB["ready"]:
+        return
+    chunks = []
+
+    def add(title, searchable, text, cap=900):
+        text = re.sub(r"\s+", " ", text).strip()
+        if text:
+            head = (title + " " + searchable).lower()
+            chunks.append({"title": title, "head": head,
+                           "find": head + " " + text.lower(), "text": text[:cap]})
+
+    ru_text = _c("ru_text.json") or {}
+    ru_wiki = _c("ru_wiki.json") or {}
+    for group in ("troops", "proto_troops", "gunboat", "defenses", "proto_defenses", "heroes", "buildings", "meta"):
+        arr = _c(group + ".json")
+        if not arr:
+            continue
+        for e in arr:
+            key = f"{group}:{e.get('id', '')}"
+            title = f"{e.get('ru', '')} ({e.get('en', '')})"
+            t = ru_text.get(key) or {}
+            parts = []
+            if t.get("s"):
+                parts.append(t["s"])
+            for u in (t.get("u") or [])[:3]:
+                parts.append(u)
+            w = ru_wiki.get(key) or {}
+            for sect, lines in w.items():
+                parts.append(sect + ": " + " ".join(lines[:3]))
+            add(title, " ".join(e.get("alias") or []), title + ". " + " ".join(parts))
+    guide = _c("guide.json")
+    for a in (guide or {}).get("articles", []):
+        txt = []
+        for b in a.get("blocks", []):
+            if b.get("t") in ("p", "tip", "warn"):
+                txt.append(b["v"])
+            elif b.get("t") in ("ul", "ol"):
+                txt.extend(b["v"])
+            elif b.get("t") == "h":
+                txt.append(b["v"])
+        add("Гайд: " + a.get("title", ""), "", " ".join(txt), cap=1400)
+    for u in (_c("updates.json") or [])[:6]:
+        lines = []
+        for s in u.get("s", []):
+            lines.append((s.get("h", "") + ": " if s.get("h") else "") + " ".join(s.get("v", [])[:8]))
+        add("Обновление игры: " + u.get("t", ""), u.get("d", ""), u.get("d", "") + ". " + " ".join(lines), cap=1200)
+    KB["chunks"] = chunks
+    KB["ready"] = True
+    print(f"База знаний ИИ: {len(chunks)} выдержек", flush=True)
+
+
+def _kb_context(question, limit=5):
+    """Топ выдержек по совпадению слов вопроса. Нет совпадений — нет контекста."""
+    _build_kb()
+    words = [w for w in re.findall(r"[а-яёa-z0-9]{4,}", question.lower())]
+    if not words:
+        return ""
+    # грубый стемминг: отрезаем окончания, чтобы «заморозки» находила «заморозка»
+    stems = [w if len(w) <= 4 else w[:len(w) - (2 if len(w) > 6 else 1)] for w in words]
+    scored = []
+    for c in KB["chunks"]:
+        score = 0
+        for st in stems:
+            n = c["find"].count(st)
+            if n:
+                score += n + (2 if st in c["head"] else 0)
+        if score:
+            scored.append((score, c))
+    scored.sort(key=lambda x: -x[0])
+    if not scored:
+        return ""
+    return "\n\n".join(f"[{c['title']}]\n{c['text']}" for _, c in scored[:limit])
 
 
 def _pick_groq_model():
@@ -137,7 +224,14 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             return
         # историю шлёт приложение; системную инструкцию добавляет только сервер,
         # чтобы её нельзя было подменить с клиента
-        msgs = [{"role": "system", "content": AI_SYSTEM}]
+        system = AI_SYSTEM
+        ctx = _kb_context(question)
+        if ctx:
+            system += ("\n\nНиже — выдержки из справочника этого приложения. Если они относятся к вопросу, "
+                       "отвечай строго по ним: точные цифры, уровни и названия приводи только из выдержек. "
+                       "Если нужного в выдержках нет — скажи прямо, что точных данных в справочнике нет, "
+                       "и дай общий совет без выдуманных цифр.\n\n" + ctx)
+        msgs = [{"role": "system", "content": system}]
         for m in (body.get("history") or [])[-12:]:
             if isinstance(m, dict) and m.get("role") in ("user", "assistant") \
                     and isinstance(m.get("content"), str) and m["content"].strip():
