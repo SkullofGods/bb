@@ -403,6 +403,15 @@ details.acc .acc-body li::marker { color: var(--gold); }
 }
 .combo-desc { margin: 0; font-size: 12.5px; color: var(--muted); line-height: 1.5; }
 
+/* Поддержать разработчика: номер карты в шторке */
+.pay-card {
+  font: 600 17px/1.3 ui-monospace, SFMono-Regular, Menlo, monospace;
+  letter-spacing: 1.5px; text-align: center; padding: 14px 10px;
+  background: var(--surface-2); border: 1px dashed var(--line-strong);
+  border-radius: 12px; cursor: pointer;
+}
+.pay-copy { cursor: pointer; }
+
 code {
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .92em;
   background: var(--surface-2); padding: 1px 5px; border-radius: 5px;

@@ -935,8 +935,75 @@
           'Цифры взяты с англоязычной вики Boom Beach и могут отставать от последнего обновления игры. ' +
           'Русские названия — из русской вики, где они есть; остальные подписаны английским оригиналом. ' +
           'Скриншоты — из выгрузки чата опергруппы.</div>' +
-        '</div>';
-      return { title: 'Ещё', html: html };
+        '</div>' +
+
+        supportButton();
+      return {
+        title: 'Ещё', html: html,
+        after: function (root) {
+          var b = root.querySelector('[data-support]');
+          if (b) b.onclick = supportSheet;
+        }
+      };
+    });
+  }
+
+  /* ======================= ПОДДЕРЖКА ======================= */
+
+  /* Номер карты задаётся в index.html рядом с APP_VERSION.
+     Пусто — кнопки нет: показывать заглушку с чужим номером хуже, чем ничего. */
+  function supportCard() {
+    return String(window.SUPPORT_CARD || '').replace(/\s+/g, ' ').trim();
+  }
+
+  function supportButton() {
+    if (!supportCard()) return '';
+    return '<button class="row support-btn" data-support="1" style="margin-top:16px">' +
+      '<span class="t-ico" style="width:44px;height:44px;border-radius:13px;display:grid;place-items:center;' +
+      'background:var(--gold-soft);border:1px solid var(--line);font-style:normal;font-size:20px">☕</span>' +
+      '<span class="rt"><b>Поддержать разработчика</b><span>Переводом на карту</span></span>' +
+      '<span class="chev">›</span></button>';
+  }
+
+  function copyText(text) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      return navigator.clipboard.writeText(text);
+    }
+    /* старые webview внутри Telegram не знают navigator.clipboard */
+    return new Promise(function (resolve, reject) {
+      var ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0';
+      document.body.appendChild(ta);
+      ta.focus(); ta.select();
+      try { document.execCommand('copy') ? resolve() : reject(new Error('copy')); }
+      catch (e) { reject(e); }
+      finally { ta.remove(); }
+    });
+  }
+
+  function supportSheet() {
+    var card = supportCard();
+    UI.sheet(
+      '<div class="sec-title" style="margin-top:12px">Поддержать разработчика</div>' +
+      '<div class="card">' +
+        '<div class="tiny" style="margin-bottom:12px">Справочник бесплатный и без рекламы. ' +
+        'Поблагодарить можно переводом по номеру карты — из любого банка.</div>' +
+        '<div class="pay-card" data-copy="1">' + esc(card) + '</div>' +
+        '<button class="chip pay-copy" data-copy="1" style="width:100%;padding:12px;margin-top:12px">' +
+          'Скопировать номер</button>' +
+        '<div class="tiny pay-ok" hidden style="margin-top:8px;color:var(--teal)">Номер скопирован ✓</div>' +
+      '</div>'
+    );
+    var cardEls = document.querySelectorAll('[data-copy]');
+    cardEls.forEach(function (el) {
+      el.onclick = function () {
+        copyText(card.replace(/\s/g, '')).then(function () {
+          var ok = document.querySelector('.pay-ok');
+          if (ok) ok.hidden = false;
+          UI.haptic('medium');
+        }).catch(function () {});
+      };
     });
   }
 

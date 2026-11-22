@@ -7,10 +7,13 @@
 <meta name="theme-color" content="#101418">
 <title>Опергруппа · Boom Beach</title>
 <link rel="icon" href="img/headquarters.webp">
-<link rel="stylesheet" href="css/app.css?v=17">
+<link rel="stylesheet" href="css/app.css?v=18">
 <script>
 // Номер сборки виден в разделе «Ещё» — по нему понятно, доехало ли обновление
-window.APP_VERSION = 17;
+window.APP_VERSION = 18;
+// Карта для кнопки «Поддержать разработчика» (раздел «Ещё»).
+// Пусто — кнопки нет.
+window.SUPPORT_CARD = '2200 7020 4778 7036';
 // Ставится до всего остального: если какой-то скрипт не выполнится,
 // лучше показать причину, чем пустой экран
 window.onerror = function (msg, src, line, col, err) {
@@ -68,7 +71,7 @@ window.onerror = function (msg, src, line, col, err) {
 <!-- SDK Telegram лежит рядом, а не на telegram.org: оттуда он на телефоне
      может не загрузиться, и блокирующий скрипт в <head> держал пустой экран.
      Обновить: curl -o webapp/js/telegram-web-app.js https://telegram.org/js/telegram-web-app.js -->
-<script src="js/telegram-web-app.js?v=17"></script>
+<script src="js/telegram-web-app.js?v=18"></script>
 <script>
 // Telegram держит свой экран загрузки, пока приложение не скажет, что живо.
 // Говорим сразу после SDK, не дожидаясь загрузки данных.
@@ -79,10 +82,10 @@ try {
   }
 } catch (e) { /* вне Telegram этого всего нет */ }
 </script>
-<script src="js/data.js?v=17"></script>
-<script src="js/ui.js?v=17"></script>
-<script src="js/calc.js?v=17"></script>
-<script src="js/views.js?v=17"></script>
-<script src="js/app.js?v=17"></script>
+<script src="js/data.js?v=18"></script>
+<script src="js/ui.js?v=18"></script>
+<script src="js/calc.js?v=18"></script>
+<script src="js/views.js?v=18"></script>
+<script src="js/app.js?v=18"></script>
 </body>
 </html>
