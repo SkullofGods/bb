@@ -1063,8 +1063,7 @@
       var html =
         '<div class="hero"><span class="hero-badge">патчи</span>' +
           '<h1>Обновления игры</h1>' +
-          '<p>Последние патчи с англоязычной вики, перевод автоматический. Собирается запуском ' +
-          '<code>py tools/build.py updates</code>.</p>' +
+          '<p>Последние патчи с официальной вики, перевод автоматический. Проверяется каждый день.</p>' +
         '</div>' +
         list.map(function (u, i) {
           var body = u.s.map(function (sec) {

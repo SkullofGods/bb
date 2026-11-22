@@ -851,7 +851,8 @@ def _names_ru(text):
 
 
 def _wiki_line(s):
-    """Вики-разметку в текст: [[A|B]]->B, [[A]]->A, {{Res|RES=X}}->X, шаблоны, теги и кавычки прочь."""
+    """Вики-разметку в текст: картинки и шаблоны прочь, [[A|B]]->B, [[A]]->A, теги и кавычки тоже."""
+    s = re.sub(r"\[\[File:[^\]]*\]\]", "", s)
     s = re.sub(r"\[\[[^\]|]+\|([^\]]+)\]\]", r"\1", s)
     s = re.sub(r"\[\[([^\]]+)\]\]", r"\1", s)
     s = re.sub(r"\{\{Res\|RES=([^}|]+)[^}]*\}\}", r"\1", s)
@@ -859,7 +860,18 @@ def _wiki_line(s):
     s = re.sub(r"<ref[^>]*>.*?</ref>", "", s)
     s = re.sub(r"<[^>]+>", "", s)
     s = s.replace("'''", "").replace("''", "")
+    s = re.sub(r"(?<=[!.,])\s*(?:center|thumb|left|right)\|\d+px\|link=\s*$", "", s)
     return re.sub(r"\s+", " ", s).strip(" :")
+
+
+def _clean_body(body):
+    """Тело таблицы до разбора по строкам: галереи, <center> и многострочные
+    шаблоны {{...}} (внутри бывают [[File:...]] с собственными скобками)."""
+    body = re.sub(r"<gallery[\s\S]*?</gallery>", "", body)
+    body = re.sub(r"</?center>", "", body)
+    for _ in range(3):  # один проход снимает один уровень вложенности скобок
+        body = re.sub(r"\{\{[^{}]*\}\}", "", body)
+    return body
 
 
 def _ru_date(s):
@@ -934,7 +946,7 @@ def build_updates(refetch=False, retranslate=False):
             body = tb.split("\n|-", 1)[1]
         except IndexError:
             continue
-        body = body.rsplit("|}", 1)[0]
+        body = _clean_body(body.rsplit("|}", 1)[0])
 
         sections, cur = [], {"h": "", "v": []}
         for raw in body.split("\n"):
@@ -946,7 +958,8 @@ def build_updates(refetch=False, retranslate=False):
                 cur = {"h": h, "v": []}
             elif s.startswith("*"):
                 line = ("— " if s.startswith("**") else "") + _wiki_line(s.lstrip("*"))
-                if line and len(cur["v"]) < 30:
+                # обломки шаблонов и ссылок после чистки — мусор, не показываем
+                if line and len(cur["v"]) < 30 and not re.search(r"\{\{|\[\[|link=", line):
                     cur["v"].append(line)
             elif s and not s.startswith(("{", "|", "!")) and len(s) > 25:
                 line = _wiki_line(s)
