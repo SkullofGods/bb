@@ -412,6 +412,70 @@ details.acc .acc-body li::marker { color: var(--gold); }
 }
 .pay-copy { cursor: pointer; }
 
+/* ИИ-помощник: широкая кнопка на главной и экран чата */
+.ai-cta {
+  display: flex; align-items: center; gap: 12px; width: 100%;
+  margin-top: 16px; padding: 13px 14px; border-radius: var(--radius);
+  background: linear-gradient(140deg, var(--gold-soft), transparent 70%), var(--surface);
+  border: 1px solid var(--line-strong); color: inherit; font: inherit;
+  text-align: left; cursor: pointer;
+  transition: transform .12s ease, background .12s ease;
+}
+.ai-cta:active { transform: scale(.98); background: var(--surface-2); }
+.ai-cta .ico {
+  width: 44px; height: 44px; flex: none; border-radius: 13px;
+  display: grid; place-items: center; font-style: normal; font-size: 22px;
+  background: var(--gold-soft); border: 1px solid var(--line);
+}
+.ai-cta .t { flex: 1; min-width: 0; }
+.ai-cta .t b { display: block; font-size: 14px; font-weight: 800; }
+.ai-cta .t span { display: block; font-size: 11.5px; color: var(--muted); margin-top: 1px; }
+.ai-cta .chev { color: var(--muted-2); font-size: 18px; }
+
+.ai-log { display: flex; flex-direction: column; margin-bottom: 8px; padding-bottom: 78px; }
+.ai-msg {
+  max-width: 86%; margin-bottom: 10px; padding: 10px 13px;
+  border-radius: 15px; font-size: 13.5px; line-height: 1.5; white-space: pre-wrap;
+  overflow-wrap: break-word;
+}
+.ai-msg.me {
+  align-self: flex-end; background: var(--gold-soft);
+  border: 1px solid rgba(255, 146, 80, .25); border-bottom-right-radius: 5px;
+}
+.ai-msg.bot {
+  align-self: flex-start; background: var(--surface);
+  border: 1px solid var(--line); border-bottom-left-radius: 5px;
+}
+.ai-msg.bot.err { background: var(--red-soft); border-color: rgba(255, 107, 94, .25); }
+.ai-typing { color: var(--muted-2); animation: pulse 1.2s ease-in-out infinite; }
+
+/* поле ввода висит над нижними вкладками */
+.ai-input {
+  position: fixed; left: 0; right: 0; z-index: 40;
+  bottom: calc(var(--tab-h) + var(--safe-b));
+  display: flex; gap: 8px; padding: 10px 12px;
+  background: var(--bg);
+  background: color-mix(in srgb, var(--bg) 90%, transparent);
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  border-top: 1px solid var(--line);
+}
+.ai-input input {
+  flex: 1; min-width: 0; padding: 11px 14px; border-radius: 13px;
+  background: var(--surface); border: 1px solid var(--line);
+  color: var(--text); font: inherit; font-size: 14.5px; outline: none;
+}
+.ai-input input::placeholder { color: var(--muted-2); }
+.ai-input button {
+  width: 46px; flex: none; border-radius: 13px; border: 0; cursor: pointer;
+  background: var(--gold); color: #2b1204;
+  display: grid; place-items: center;
+}
+.ai-input button:active { background: var(--surface-2); color: var(--gold); }
+.ai-input button svg {
+  width: 21px; height: 21px; fill: none; stroke: currentColor;
+  stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round;
+}
+
 code {
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .92em;
   background: var(--surface-2); padding: 1px 5px; border-radius: 5px;

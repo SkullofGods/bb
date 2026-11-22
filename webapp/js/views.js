@@ -47,6 +47,12 @@
           return UI.rowItem({ title: a.title, sub: a.sub, href: '#/guide/' + a.id });
         }).join('') +
 
+        '<button class="ai-cta" data-href="#/ai">' +
+          '<span class="ico">🤖</span>' +
+          '<span class="t"><b>Спросить ИИ-помощника</b><span>Связки, оборона, операции — ответ сразу</span></span>' +
+          '<span class="chev">›</span>' +
+        '</button>' +
+
         '<div class="src tiny">Данные с англоязычной вики Boom Beach · схемы из чата опергруппы</div>';
 
       return { title: 'Опергруппа', html: html };
@@ -1044,11 +1050,103 @@
     });
   }
 
+  /* ======================= ИИ-ПОМОЩНИК ======================= */
+
+  var AI_STARTERS = [
+    'Чем бить базу с двумя роковыми пушками?',
+    'Как ходить против С.И.М.О. и микроволновки?',
+    'Объясни порядок атак на операции'
+  ];
+
+  function aiView() {
+    var hist = [];
+    try { hist = JSON.parse(UI.store.get('bb_ai', '[]')) || []; } catch (e) { /* битая память — начнём заново */ }
+
+    function bubble(m) {
+      var cls = m.role === 'user' ? 'me' : (m.error ? 'bot err' : 'bot');
+      return '<div class="ai-msg ' + cls + '">' + esc(m.content) + '</div>';
+    }
+
+    var html =
+      '<div class="hero"><span class="hero-badge">ИИ-помощник</span>' +
+        '<h1>Спроси про Boom Beach</h1>' +
+        '<p>Связки, оборона, операции, прототипы — отвечает модель Groq. Помнит разговор внутри визита.</p>' +
+      '</div>' +
+      '<div class="ai-log" id="ai-log">' + hist.map(bubble).join('') + '</div>' +
+      (hist.length ? '' : '<div class="chips" style="margin:2px 0 10px" id="ai-start">' +
+        AI_STARTERS.map(function (q) {
+          return '<span class="chip sm" data-q="' + esc(q) + '">' + esc(q) + '</span>';
+        }).join('') + '</div>');
+
+    return {
+      title: 'ИИ-помощник',
+      html: html +
+        '<div class="ai-input">' +
+          '<input id="ai-q" placeholder="Например: чем ходить против танков?" maxlength="500">' +
+          '<button id="ai-send" aria-label="Отправить">' +
+            '<svg viewBox="0 0 24 24"><path d="M4 12h15"/><path d="M13 6l6 6-6 6"/></svg>' +
+          '</button>' +
+        '</div>',
+      after: function (root) {
+        var log = root.querySelector('#ai-log');
+        var inp = root.querySelector('#ai-q');
+        var send = root.querySelector('#ai-send');
+        var busy = false;
+
+        function save() { UI.store.set('bb_ai', JSON.stringify(hist.slice(-24))); }
+        function scroll() { log.scrollIntoView({ block: 'end' }); }
+
+        function ask(q) {
+          if (busy || !q.trim()) return;
+          busy = true;
+          inp.value = '';
+          var start = root.querySelector('#ai-start');
+          if (start) start.hidden = true;
+          hist.push({ role: 'user', content: q.trim() });
+          log.insertAdjacentHTML('beforeend', bubble(hist[hist.length - 1]));
+          log.insertAdjacentHTML('beforeend', '<div class="ai-msg bot ai-typing" id="ai-wait">думает…</div>');
+          scroll();
+
+          fetch('api/ask', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ q: q.trim(), history: hist.slice(0, -1) })
+          }).then(function (r) { return r.json(); }).then(function (out) {
+            var wait = root.querySelector('#ai-wait');
+            if (wait) wait.remove();
+            var m = out.reply
+              ? { role: 'assistant', content: out.reply }
+              : { role: 'assistant', content: out.error || 'ИИ не ответил', error: !out.reply };
+            hist.push(m);
+            log.insertAdjacentHTML('beforeend', bubble(m));
+          }).catch(function () {
+            var wait = root.querySelector('#ai-wait');
+            if (wait) wait.remove();
+            var m = { role: 'assistant', content: 'Не получилось связаться с сервером — попробуй ещё раз', error: true };
+            hist.push(m);
+            log.insertAdjacentHTML('beforeend', bubble(m));
+          }).then(function () {
+            busy = false;
+            save();
+            scroll();
+          });
+        }
+
+        send.onclick = function () { UI.haptic('light'); ask(inp.value); };
+        inp.onkeydown = function (ev) { if (ev.key === 'Enter') ask(inp.value); };
+        root.querySelectorAll('#ai-start .chip').forEach(function (c) {
+          c.onclick = function () { ask(c.dataset.q); };
+        });
+        setTimeout(function () { try { inp.focus(); } catch (e) {} }, 80);
+      }
+    };
+  }
+
   global.VIEWS = {
     home: home, ops: ops, operation: operation, bases: bases, base: base,
     catalog: catalog, detail: detail,
     gunboat: gunboat, calcView: calcView, statues: statues,
     guideArticle: guideArticle, faqView: faqView,
-    more: more, searchView: searchView
+    more: more, searchView: searchView, ai: aiView
   };
 })(window);

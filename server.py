@@ -12,11 +12,14 @@ SIGTERM. Локально порт можно задать аргументом:
 только если тот настроен.
 """
 import http.server
+import json
 import os
 import signal
 import socket
 import sys
 import threading
+import urllib.error
+import urllib.request
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.join(BASE_DIR, "webapp")
@@ -24,6 +27,53 @@ ROOT = os.path.join(BASE_DIR, "webapp")
 # bothost передаёт порт в PORT и по умолчанию ждёт 3000; аргумент командной
 # строки важнее — им удобно пользоваться локально
 PORT = int(sys.argv[1]) if len(sys.argv) > 1 else int(os.environ.get("PORT") or 3000)
+
+# --- ИИ-помощник (api.groq.com). Ключ живёт на сервере, в приложение не попадает ---
+GROQ_KEY = os.environ.get("GROQ_API_KEY", "").strip()
+GROQ_MODEL = os.environ.get("GROQ_MODEL", "").strip()
+GROQ_API = "https://api.groq.com/openai/v1"
+
+AI_SYSTEM = (
+    "Ты — игровой помощник в справочнике опергруппы Boom Beach (Telegram-мини-приложение). "
+    "Отвечай по-русски, коротко и по делу: несколько предложений или компактный список. "
+    "Темы: связки войск и мета, оборона своей базы, операции и силовые базы, прототипы и герои, "
+    "статуи, энергия канонерки, экономика. Используй русские названия юнитов из чата игроков: "
+    "гора (Heavy), базука (Zooka), огневик (Scorcher), заморозка (Cryoneer), смек (Smokey Warriors) и подобные. "
+    "Не выдумывай точные цифры урона и прочности; если не уверен — так и скажи. "
+    "Если вопрос совсем не про Boom Beach — мягко верни разговор к игре."
+)
+
+_groq_model = {"picked": ""}
+
+
+def _pick_groq_model():
+    """Groq регулярно выводит модели из строя — берём первую живую из списка.
+    Список доступных скачивается один раз и запоминается."""
+    if _groq_model["picked"]:
+        return _groq_model["picked"]
+    pref = ([GROQ_MODEL] if GROQ_MODEL else []) + [
+        "llama-3.3-70b-versatile",
+        "openai/gpt-oss-120b",
+        "llama-3.1-8b-instant",
+        "moonshotai/kimi-k2-instruct",
+    ]
+    ids = []
+    try:
+        req = urllib.request.Request(GROQ_API + "/models",
+                                     headers={"Authorization": "Bearer " + GROQ_KEY,
+                                              "User-Agent": "bb-miniapp"})
+        with urllib.request.urlopen(req, timeout=15) as r:
+            ids = [m.get("id", "") for m in json.load(r).get("data", [])]
+    except Exception as e:
+        print(f"Список моделей Groq не получился ({e.__class__.__name__}), идём по умолчанию", flush=True)
+    for p in pref:
+        if p and p in ids:
+            _groq_model["picked"] = p
+            break
+    else:
+        _groq_model["picked"] = next((i for i in ids if "llama" in i.lower()), pref[1] if len(pref) > 1 else pref[0])
+    print(f"ИИ-помощник: модель {_groq_model['picked']}", flush=True)
+    return _groq_model["picked"]
 
 # Данные и разметка должны обновляться сразу, картинки можно держать в кеше долго
 NO_CACHE = (".html", ".json")
@@ -58,6 +108,68 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             self.wfile.write(body)
             return
         super().do_GET()
+
+    def _json(self, code, obj):
+        body = json.dumps(obj, ensure_ascii=False).encode("utf-8")
+        self.send_response(code)
+        self.send_header("Content-Type", "application/json; charset=utf-8")
+        self.send_header("Content-Length", str(len(body)))
+        self.send_header("Cache-Control", "no-store")
+        self.end_headers()
+        self.wfile.write(body)
+
+    def do_POST(self):
+        if self.path.split("?")[0] != "/api/ask":
+            self._json(404, {"error": "такого запроса нет"})
+            return
+        try:
+            size = int(self.headers.get("Content-Length") or 0)
+            body = json.loads(self.rfile.read(size).decode("utf-8") or "{}")
+        except Exception:
+            self._json(400, {"error": "не понял запрос"})
+            return
+        if not GROQ_KEY:
+            self._json(503, {"error": "ИИ не настроен: на сервере не задан GROQ_API_KEY"})
+            return
+        question = str(body.get("q") or "").strip()[:1200]
+        if not question:
+            self._json(400, {"error": "пустой вопрос"})
+            return
+        # историю шлёт приложение; системную инструкцию добавляет только сервер,
+        # чтобы её нельзя было подменить с клиента
+        msgs = [{"role": "system", "content": AI_SYSTEM}]
+        for m in (body.get("history") or [])[-12:]:
+            if isinstance(m, dict) and m.get("role") in ("user", "assistant") \
+                    and isinstance(m.get("content"), str) and m["content"].strip():
+                msgs.append({"role": m["role"], "content": m["content"][:1500]})
+        msgs.append({"role": "user", "content": question})
+        try:
+            payload = json.dumps({
+                "model": _pick_groq_model(),
+                "messages": msgs,
+                "temperature": 0.4,
+                "max_tokens": 700,
+            }).encode("utf-8")
+            req = urllib.request.Request(GROQ_API + "/chat/completions", data=payload, headers={
+                "Authorization": "Bearer " + GROQ_KEY,
+                "Content-Type": "application/json",
+                "User-Agent": "bb-miniapp",
+            })
+            with urllib.request.urlopen(req, timeout=45) as r:
+                out = json.load(r)
+            reply = out["choices"][0]["message"]["content"].strip()
+            self._json(200, {"reply": reply})
+        except urllib.error.HTTPError as e:
+            detail = ""
+            try:
+                detail = json.load(e).get("error", {}).get("message", "")[:200]
+            except Exception:
+                pass
+            print(f"Groq ответил ошибкой {e.code}: {detail}", flush=True)
+            self._json(502, {"error": "ИИ временно недоступен, попробуй ещё раз минут через пять"})
+        except Exception as e:
+            print(f"Запрос к Groq сорвался: {e.__class__.__name__}: {e}", flush=True)
+            self._json(502, {"error": "ИИ не ответил — проверь связь и попробуй ещё раз"})
 
     def send_head(self):
         """Неизвестный путь отдаём как index.html — приложение одностраничное."""
@@ -133,6 +245,9 @@ def main():
 
     print(f"Мини-приложение слушает 0.0.0.0:{PORT}", flush=True)
     print(f"Локально: http://localhost:{PORT}  ·  в сети: http://{local_ip()}:{PORT}", flush=True)
+    print("ИИ-помощник: " + ("включён, ключ Groq на месте" if GROQ_KEY
+                            else "выключен — задай переменную GROQ_API_KEY, чтобы кнопка заработала"),
+          flush=True)
     try:
         httpd.serve_forever()
     finally:
