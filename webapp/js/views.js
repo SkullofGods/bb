@@ -1055,8 +1055,9 @@
   /* ======================= ОБНОВЛЕНИЯ ИГРЫ ======================= */
 
   function updatesView() {
-    return DB.load('updates').then(function (list) {
-      if (!list || !list.length) {
+    return DB.load('updates').then(function (data) {
+      var list = Array.isArray(data) ? data : (data && data.items) || [];
+      if (!list.length) {
         return { title: 'Обновления', html: '<div class="empty"><i>🗞️</i>Список обновлений пока не собран</div>' };
       }
       var html =

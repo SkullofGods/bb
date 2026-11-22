@@ -12,6 +12,7 @@ SIGTERM. Локально порт можно задать аргументом:
 только если тот настроен.
 """
 import http.server
+import datetime
 import json
 import os
 import re
@@ -19,6 +20,7 @@ import signal
 import socket
 import sys
 import threading
+import time
 import urllib.error
 import urllib.request
 
@@ -100,7 +102,10 @@ def _build_kb():
             elif b.get("t") == "h":
                 txt.append(b["v"])
         add("Гайд: " + a.get("title", ""), "", " ".join(txt), cap=1400)
-    for u in (_c("updates.json") or [])[:6]:
+    upd_data = _c("updates.json") or []
+    if isinstance(upd_data, dict):
+        upd_data = upd_data.get("items") or []
+    for u in upd_data[:6]:
         lines = []
         for s in u.get("s", []):
             lines.append((s.get("h", "") + ": " if s.get("h") else "") + " ".join(s.get("v", [])[:8]))
@@ -310,9 +315,53 @@ def local_ip():
         return "127.0.0.1"
 
 
+# --- ежедневная проверка обновлений игры ---
+# Раз в день в UPDATES_HOUR (время сервера) дёргаем tools/build.build_updates():
+# он сам сравнивает вики с прошлым разом и переводит только новый патч.
+# bothost живёт по UTC: 7:00 UTC = 10:00 Москвы. Отключить: UPDATES_CRON=0.
+
+def _seconds_until(hour):
+    now = datetime.datetime.now()
+    nxt = now.replace(hour=hour, minute=0, second=0, microsecond=0)
+    if nxt <= now:
+        nxt += datetime.timedelta(days=1)
+    return (nxt - now).total_seconds()
+
+
+def start_updates_thread():
+    if os.environ.get("UPDATES_CRON", "1").strip() == "0":
+        print("Автопроверка обновлений выключена (UPDATES_CRON=0)", flush=True)
+        return
+    try:
+        hour = int(os.environ.get("UPDATES_HOUR") or 10)
+    except ValueError:
+        hour = 10
+
+    def loop():
+        # первая проверка — через пару минут после старта (кеш свежий — пропустит)
+        time.sleep(120)
+        while True:
+            try:
+                sys.path.insert(0, os.path.join(BASE_DIR, "tools"))
+                import build
+                print("обновления: проверяю вики…", flush=True)
+                changed = build.build_updates(refetch=True)
+                if changed:
+                    KB["ready"] = False  # база знаний ИИ подтянется заново
+            except BaseException as e:
+                print(f"обновления: не получилось ({e.__class__.__name__}: {e})", flush=True)
+            time.sleep(_seconds_until(hour))
+
+    threading.Thread(target=loop, name="updates", daemon=True).start()
+    print(f"Автопроверка обновлений: ежедневно в {hour}:00 "
+          f"(через {int(_seconds_until(hour) // 3600)} ч)", flush=True)
+
+
 def main():
     if not os.path.isdir(ROOT):
         raise SystemExit(f"Нет папки с приложением: {ROOT}")
+
+    start_updates_thread()
 
     httpd = Server(("0.0.0.0", PORT), Handler)
 

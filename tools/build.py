@@ -877,9 +877,18 @@ def _ru_date(s):
     return s.strip()
 
 
-def build_updates():
+def build_updates(refetch=False, retranslate=False):
+    """Возвращает True, если файл updates.json реально переписан.
+
+    refetch — перекачать страницу истории (иначе берём кеш).
+    retranslate — переводить, даже если текст вики не менялся.
+    Ежедневной проверке хватает refetch: пока хеш источника тот же,
+    переводчик не дёргается вообще.
+    """
     cachefile = os.path.join(CACHE, "Version_History_wt.json")
     os.makedirs(CACHE, exist_ok=True)
+    if refetch and os.path.exists(cachefile):
+        os.remove(cachefile)
     if os.path.exists(cachefile) and os.path.getsize(cachefile) > 500:
         wt = open(cachefile, encoding="utf-8").read()
     else:
@@ -887,6 +896,20 @@ def build_updates():
                  "format": "json", "formatversion": "2"})
         wt = d["parse"]["wikitext"]
         open(cachefile, "w", encoding="utf-8").write(wt)
+
+    # не изменилась ли вики с прошлого раза
+    import hashlib
+    src_hash = hashlib.md5(wt.encode("utf-8")).hexdigest()
+    out = os.path.join(DATA, "updates.json")
+    old = None
+    if os.path.exists(out):
+        try:
+            old = json.load(open(out, encoding="utf-8"))
+        except OSError:
+            old = None
+    if not retranslate and isinstance(old, dict) and old.get("meta", {}).get("src") == src_hash:
+        print("обновления: вики не менялась, перевод не нужен")
+        return False
 
     updates = []
     for tb in re.split(r'\{\| class="wikitable', wt)[1:UPDATES_KEEP * 2 + 4]:
@@ -939,7 +962,7 @@ def build_updates():
         t_ru = mt(_names_ru(title)) or title
         if t_ru.lower().rstrip(". ") in ("обновлять", "обновление"):
             t_ru = "Обновление игры"
-        upd = {"t": t_ru, "d": _ru_date(date_en), "src": UPDATES_PAGE.replace(" ", "_"),
+        upd = {"t": t_ru, "d": _ru_date(date_en),
                "s": []}
         for sec in sections:
             h_ru = mt(_names_ru(sec["h"])) if sec["h"] else ""
@@ -954,15 +977,26 @@ def build_updates():
         if len(updates) >= UPDATES_KEEP:
             break
 
-    out = os.path.join(DATA, "updates.json")
-    json.dump(updates, open(out, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
+    # если переводчик лёг, больше половины строк останутся английскими —
+    # лучше оставить прошлую русскую версию, чем перезаписать сырьём
+    total = sum(len(x["v"]) for u in updates for x in u["s"])
+    raw = sum(1 for u in updates for x in u["s"] for l in x["v"] if l.endswith("(англ.)"))
+    if total and raw / total > 0.5:
+        print(f"обновления: переводчик недоступен ({raw}/{total} строк сырые) — оставляю прежний файл")
+        return False
+
+    data = {"meta": {"src": src_hash,
+                     "built": time.strftime("%Y-%m-%d %H:%M")},
+            "items": updates}
+    json.dump(data, open(out, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
     print(f"обновления: {len(updates)} -> {os.path.basename(out)}")
+    return True
 
 
 if __name__ == "__main__":
     if len(sys.argv) > 1 and sys.argv[1] == "updates":
-        build_updates()
+        build_updates(refetch=True, retranslate=True)
     else:
         build_wiki()
-        build_updates()
+        build_updates(refetch=True, retranslate=True)
         print("Готово. Каталог баз операций собирается отдельно: py -3 tools/build_bases.py")
